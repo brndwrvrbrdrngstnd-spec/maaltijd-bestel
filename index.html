@@ -409,15 +409,22 @@ const ADMIN_KOST   = 0.30;  // extra kost per bestelling in euro (dekt Stripe-fe
    MENU — pas dit aan of laad vanuit Sheet
    ════════════════════════════════════════════ */
 
-const MENU = [
-  { naam: 'Hesp',     prijs: 8.50 },
-  { naam: 'Vegetarisch',    prijs: 8.00 },
-  { naam: 'Barra chicken guacamole',    prijs: 4.00 },
-  { naam: 'Broodje Kaas',   prijs: 3.50 },
-  { naam: 'Soep + brood',   prijs: 3.50 },
-  { naam: 'Salade',         prijs: 5.00 },
-];
+let MENU = [];
 
+async function laadMenu() {
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ actie: 'get_menu' })
+    });
+    MENU = await resp.json();
+    renderMenu();
+  } catch(err) {
+    document.getElementById('menuGrid').innerHTML = 
+      '<div class="menu-loading">Menu kon niet geladen worden. Herlaad de pagina.</div>';
+  }
+}
 /* ════════════════════════════════════════════
    INIT
    ════════════════════════════════════════════ */
@@ -591,7 +598,7 @@ function toonSucces(naam, item, totalCent) {
 /* ════════════════════════════════════════════
    START
    ════════════════════════════════════════════ */
-renderMenu();
+laadMenu();
 </script>
 </body>
 </html>
