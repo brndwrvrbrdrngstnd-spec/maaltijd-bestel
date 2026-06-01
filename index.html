@@ -378,9 +378,7 @@
 
       <!-- Stripe betaling -->
       <p class="section-label">Betaling</p>
-      <div class="stripe-wrapper" id="stripeWrapper">
-        <div id="card-element"></div>
-      </div>
+     <div id="payment-element"></div>
       <div id="card-errors"></div>
 
       <button class="btn-pay" id="btnPay" disabled>
@@ -431,26 +429,9 @@ async function laadMenu() {
 
 const stripe      = Stripe(STRIPE_KEY);
 const elements    = stripe.elements();
-const cardElement = elements.create('card', {
-  hidePostalCode: true,
-  style: {
-    base: {
-      fontFamily: "'DM Sans', sans-serif",
-      fontSize: '15px',
-      color: '#1A1A18',
-      '::placeholder': { color: '#9C9B96' },
-    },
-    invalid: { color: '#B5451B' }
-  }
-});
-cardElement.mount('#card-element');
 
-cardElement.on('focus',  () => document.getElementById('stripeWrapper').classList.add('focused'));
-cardElement.on('blur',   () => document.getElementById('stripeWrapper').classList.remove('focused'));
-cardElement.on('change', e => {
-  document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
-  updateBtn();
-});
+let paymentElement = null;
+let clientSecret = null;
 
 /* ════════════════════════════════════════════
    MENU RENDEREN
@@ -519,19 +500,19 @@ document.getElementById('btnPay').addEventListener('click', async () => {
   const naam  = document.getElementById('naam').value.trim();
   const email = document.getElementById('email').value.trim();
   const item  = MENU[geselecteerd];
-  const total = Math.round((item.prijs + ADMIN_KOST) * 100); // in eurocent
+  const total = Math.round((item.prijs + ADMIN_KOST) * 100);
 
   btn.classList.add('loading');
   btn.disabled = true;
   toonFout('');
 
   try {
-    // 1. Vraag een PaymentIntent aan via Apps Script
+    // Stap 1 — Haal client secret op
     const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        actie:  'create_payment_intent',
+        actie:   'create_payment_intent',
         naam,
         email,
         gerecht: item.naam,
@@ -541,16 +522,83 @@ document.getElementById('btnPay').addEventListener('click', async () => {
     });
 
     const data = await resp.json();
-
     if (!data.clientSecret) throw new Error(data.error || 'Geen client secret ontvangen.');
+    clientSecret = data.clientSecret;
 
-    // 2. Bevestig de betaling met Stripe.js
-    const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
-      payment_method: {
-        card: cardElement,
-        billing_details: { name: naam, email }
+    // Stap 2 — Laad Payment Element met Bancontact
+    const elementsInstance = stripe.elements({
+      clientSecret,
+      appearance: {
+        theme: 'stripe',
+        variables: {
+          colorPrimary: '#2D6A4F',
+          fontFamily: 'DM Sans, sans-serif',
+          borderRadius: '8px',
+        }
       }
     });
+
+    paymentElement = elementsInstance.create('payment', {
+      layout: 'tabs',
+      defaultValues: {
+        billingDetails: { name: naam, email }
+      }
+    });
+
+    paymentElement.mount('#payment-element');
+
+    // Toon bevestigingsknop
+    btn.classList.remove('loading');
+    btn.disabled = false;
+    btn.querySelector('.btn-text').textContent = 'Bevestig betaling';
+    btn.removeEventListener('click', arguments.callee);
+
+    // Stap 3 — Tweede klik bevestigt betaling
+    btn.addEventListener('click', async () => {
+      btn.classList.add('loading');
+      btn.disabled = true;
+
+      const { error, paymentIntent } = await stripe.confirmPayment({
+        elements: elementsInstance,
+        confirmParams: {
+          return_url: window.location.href,
+          payment_method_data: {
+            billing_details: { name: naam, email }
+          }
+        },
+        redirect: 'if_required'
+      });
+
+      if (error) {
+        toonFout(error.message);
+        btn.classList.remove('loading');
+        btn.disabled = false;
+        return;
+      }
+
+      // Stap 4 — Bevestig in Sheet
+      await fetch(WEBHOOK_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: JSON.stringify({
+          actie:     'bevestig_bestelling',
+          naam,
+          email,
+          gerecht:   item.naam,
+          prijs:     item.prijs,
+          paymentId: paymentIntent.id,
+        })
+      });
+
+      toonSucces(naam, item, total);
+    });
+
+  } catch (err) {
+    toonFout(err.message || 'Er ging iets mis. Probeer opnieuw.');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+});
 
     if (error) throw new Error(error.message);
 
