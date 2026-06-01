@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Refter Bestelling</title>
+  <script src="https://js.stripe.com/v3/"></script>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <style>
+    /* ── CONFIG: pas dit aan ── */
+    /* Zie ook de JS-sectie onderaan voor STRIPE_KEY en WEBHOOK_URL */
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #F7F4EE;
+      --surface:   #FFFFFF;
+      --ink:       #1A1A18;
+      --ink-muted: #6B6A65;
+      --accent:    #2D6A4F;
+      --accent-lt: #D8EDDF;
+      --accent-dk: #1B4332;
+      --warn:      #B5451B;
+      --warn-lt:   #FAECE7;
+      --border:    rgba(26,26,24,0.12);
+      --radius:    14px;
+      --shadow:    0 2px 16px rgba(0,0,0,0.07);
+    }
+
+    html { background: var(--bg); }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--ink);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem 4rem;
+    }
+
+    /* header */
+    .header {
+      text-align: center;
+      margin-bottom: 2rem;
+      animation: fadeUp 0.5s ease both;
+    }
+    .header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(2rem, 6vw, 2.8rem);
+      color: var(--accent-dk);
+      line-height: 1.1;
+      margin-bottom: 0.4rem;
+    }
+    .header p {
+      font-size: 0.95rem;
+      color: var(--ink-muted);
+    }
+
+    /* card */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 2rem;
+      width: 100%;
+      max-width: 480px;
+      animation: fadeUp 0.5s 0.1s ease both;
+    }
+
+    /* form sections */
+    .section-label {
+      font-size: 0.75rem;
+      font-weight: 500;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--ink-muted);
+      margin-bottom: 0.75rem;
+    }
+
+    .field { margin-bottom: 1.25rem; }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 0.4rem;
+    }
+
+    input[type="text"], input[type="email"] {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-family: inherit;
+      font-size: 0.95rem;
+      color: var(--ink);
+      background: var(--bg);
+      outline: none;
+      transition: border-color 0.15s;
+    }
+    input:focus {
+      border-color: var(--accent);
+      background: #fff;
+    }
+
+    /* menu grid */
+    .menu-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 1.5rem;
+    }
+
+    .menu-item {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 0.8rem;
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+      user-select: none;
+      position: relative;
+    }
+    .menu-item:hover { border-color: var(--accent); background: #f9fdf9; }
+    .menu-item.selected {
+      border-color: var(--accent);
+      background: var(--accent-lt);
+    }
+    .menu-item .item-name {
+      font-size: 0.9rem;
+      font-weight: 500;
+      color: var(--ink);
+      margin-bottom: 2px;
+    }
+    .menu-item .item-price {
+      font-size: 0.8rem;
+      color: var(--ink-muted);
+    }
+    .menu-item .check {
+      position: absolute;
+      top: 8px; right: 8px;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      background: var(--accent);
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+    .menu-item.selected .check { display: flex; }
+    .menu-item .check::after {
+      content: '';
+      width: 5px; height: 9px;
+      border-right: 2px solid #fff;
+      border-bottom: 2px solid #fff;
+      transform: rotate(40deg) translate(-1px,-1px);
+    }
+
+    /* loading menu state */
+    .menu-loading {
+      text-align: center;
+      color: var(--ink-muted);
+      font-size: 0.875rem;
+      padding: 1.5rem 0;
+    }
+
+    /* divider */
+    .divider {
+      height: 1px;
+      background: var(--border);
+      margin: 1.5rem 0;
+    }
+
+    /* totaal */
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1.25rem;
+    }
+    .total-label { font-size: 0.9rem; color: var(--ink-muted); }
+    .total-amount {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--accent-dk);
+    }
+    .total-breakdown {
+      font-size: 0.78rem;
+      color: var(--ink-muted);
+      text-align: right;
+      margin-top: -1rem;
+      margin-bottom: 1.25rem;
+    }
+
+    /* Stripe card element */
+    .stripe-wrapper {
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 0.9rem;
+      background: var(--bg);
+      margin-bottom: 1.25rem;
+      transition: border-color 0.15s;
+    }
+    .stripe-wrapper.focused { border-color: var(--accent); background: #fff; }
+    #card-errors {
+      color: var(--warn);
+      font-size: 0.8rem;
+      margin-top: 0.4rem;
+      min-height: 1.2em;
+    }
+
+    /* submit button */
+    .btn-pay {
+      width: 100%;
+      padding: 0.9rem;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 1rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background 0.15s, transform 0.1s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+    .btn-pay:hover:not(:disabled) { background: var(--accent-dk); }
+    .btn-pay:active:not(:disabled) { transform: scale(0.98); }
+    .btn-pay:disabled { opacity: 0.55; cursor: not-allowed; }
+
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid rgba(255,255,255,0.4);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+      display: none;
+    }
+    .btn-pay.loading .spinner { display: block; }
+    .btn-pay.loading .btn-text { display: none; }
+
+    /* notice */
+    .notice {
+      font-size: 0.75rem;
+      color: var(--ink-muted);
+      text-align: center;
+      margin-top: 1rem;
+      line-height: 1.5;
+    }
+
+    /* success screen */
+    .success-screen {
+      display: none;
+      text-align: center;
+      padding: 1rem 0;
+    }
+    .success-screen.show { display: block; }
+    .form-body.hidden { display: none; }
+
+    .success-icon {
+      width: 64px; height: 64px;
+      background: var(--accent-lt);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 1.25rem;
+    }
+    .success-icon svg { width: 32px; height: 32px; }
+    .success-screen h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.6rem;
+      color: var(--accent-dk);
+      margin-bottom: 0.5rem;
+    }
+    .success-screen p {
+      font-size: 0.9rem;
+      color: var(--ink-muted);
+      line-height: 1.6;
+    }
+    .success-detail {
+      background: var(--accent-lt);
+      border-radius: 10px;
+      padding: 1rem;
+      margin-top: 1.25rem;
+      text-align: left;
+    }
+    .success-detail .row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.875rem;
+      padding: 3px 0;
+    }
+    .success-detail .row span:first-child { color: var(--ink-muted); }
+    .success-detail .row span:last-child { font-weight: 500; }
+
+    /* error banner */
+    .error-banner {
+      background: var(--warn-lt);
+      border: 1px solid rgba(181,69,27,0.2);
+      border-radius: 8px;
+      padding: 0.75rem 1rem;
+      font-size: 0.85rem;
+      color: var(--warn);
+      margin-bottom: 1rem;
+      display: none;
+    }
+
+    /* animations */
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <h1>Refter</h1>
+    <p>Bestel je maaltijd &amp; betaal meteen</p>
+  </div>
+
+  <div class="card">
+
+    <!-- SUCCESS SCREEN -->
+    <div class="success-screen" id="successScreen">
+      <div class="success-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+      </div>
+      <h2>Bestelling bevestigd!</h2>
+      <p>Je betaling is ontvangen. Ga je maaltijd ophalen op het afgesproken tijdstip.</p>
+      <div class="success-detail" id="successDetail"></div>
+    </div>
+
+    <!-- FORM -->
+    <div class="form-body" id="formBody">
+
+      <div class="error-banner" id="errorBanner"></div>
+
+      <!-- Naam & email -->
+      <p class="section-label">Jouw gegevens</p>
+
+      <div class="field">
+        <label for="naam">Naam</label>
+        <input type="text" id="naam" placeholder="Voornaam Achternaam" autocomplete="name" />
+      </div>
+
+      <div class="field">
+        <label for="email">E-mailadres</label>
+        <input type="email" id="email" placeholder="naam@bedrijf.be" autocomplete="email" />
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Menu -->
+      <p class="section-label">Kies je maaltijd</p>
+      <div class="menu-grid" id="menuGrid">
+        <div class="menu-loading">Menu laden…</div>
+      </div>
+
+      <div class="divider"></div>
+
+      <!-- Totaal -->
+      <div class="total-row">
+        <span class="total-label">Totaal te betalen</span>
+        <span class="total-amount" id="totalAmount">€ —</span>
+      </div>
+      <p class="total-breakdown" id="totalBreakdown"></p>
+
+      <!-- Stripe betaling -->
+      <p class="section-label">Betaling</p>
+      <div class="stripe-wrapper" id="stripeWrapper">
+        <div id="card-element"></div>
+      </div>
+      <div id="card-errors"></div>
+
+      <button class="btn-pay" id="btnPay" disabled>
+        <div class="spinner"></div>
+        <span class="btn-text">Betalen &amp; Bestellen</span>
+      </button>
+
+      <p class="notice">
+        Betalingen worden veilig verwerkt via Stripe.<br/>
+        Je bestelling wordt pas bevestigd na geslaagde betaling.
+      </p>
+
+    </div><!-- /form-body -->
+  </div><!-- /card -->
+
+<script>
+/* ════════════════════════════════════════════
+   CONFIGURATIE — pas deze 3 waarden aan
+   ════════════════════════════════════════════ */
+
+const STRIPE_KEY   = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
+const WEBHOOK_URL  = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
+const ADMIN_KOST   = 0.30;  // extra kost per bestelling in euro (dekt Stripe-fees)
+
+/* ════════════════════════════════════════════
+   MENU — pas dit aan of laad vanuit Sheet
+   ════════════════════════════════════════════ */
+
+const MENU = [
+  { naam: 'Hesp',     prijs: 8.50 },
+  { naam: 'Vegetarisch',    prijs: 8.00 },
+  { naam: 'Barra chicken guacamole',    prijs: 4.00 },
+  { naam: 'Broodje Kaas',   prijs: 3.50 },
+  { naam: 'Soep + brood',   prijs: 3.50 },
+  { naam: 'Salade',         prijs: 5.00 },
+];
+
+/* ════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════ */
+
+const stripe      = Stripe(STRIPE_KEY);
+const elements    = stripe.elements();
+const cardElement = elements.create('card', {
+  style: {
+    base: {
+      fontFamily: "'DM Sans', sans-serif",
+      fontSize: '15px',
+      color: '#1A1A18',
+      '::placeholder': { color: '#9C9B96' },
+    },
+    invalid: { color: '#B5451B' }
+  }
+});
+cardElement.mount('#card-element');
+
+cardElement.on('focus',  () => document.getElementById('stripeWrapper').classList.add('focused'));
+cardElement.on('blur',   () => document.getElementById('stripeWrapper').classList.remove('focused'));
+cardElement.on('change', e => {
+  document.getElementById('card-errors').textContent = e.error ? e.error.message : '';
+  updateBtn();
+});
+
+/* ════════════════════════════════════════════
+   MENU RENDEREN
+   ════════════════════════════════════════════ */
+
+let geselecteerd = null;
+
+function renderMenu() {
+  const grid = document.getElementById('menuGrid');
+  grid.innerHTML = '';
+  MENU.forEach((item, i) => {
+    const el = document.createElement('div');
+    el.className = 'menu-item';
+    el.innerHTML = `
+      <div class="item-name">${item.naam}</div>
+      <div class="item-price">€ ${item.prijs.toFixed(2)}</div>
+      <div class="check"></div>
+    `;
+    el.addEventListener('click', () => selectItem(i, el));
+    grid.appendChild(el);
+  });
+}
+
+function selectItem(i, el) {
+  document.querySelectorAll('.menu-item').forEach(e => e.classList.remove('selected'));
+  el.classList.add('selected');
+  geselecteerd = i;
+  updateTotaal();
+  updateBtn();
+}
+
+function updateTotaal() {
+  const totaalEl    = document.getElementById('totalAmount');
+  const breakdownEl = document.getElementById('totalBreakdown');
+  if (geselecteerd === null) {
+    totaalEl.textContent = '€ —';
+    breakdownEl.textContent = '';
+    return;
+  }
+  const item  = MENU[geselecteerd];
+  const total = item.prijs + ADMIN_KOST;
+  totaalEl.textContent = `€ ${total.toFixed(2)}`;
+  breakdownEl.textContent = `€ ${item.prijs.toFixed(2)} + € ${ADMIN_KOST.toFixed(2)} admin`;
+}
+
+/* ════════════════════════════════════════════
+   VALIDATIE & KNOP
+   ════════════════════════════════════════════ */
+
+function updateBtn() {
+  const naam  = document.getElementById('naam').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const ok    = naam.length > 1 && email.includes('@') && geselecteerd !== null;
+  document.getElementById('btnPay').disabled = !ok;
+}
+
+document.getElementById('naam').addEventListener('input', updateBtn);
+document.getElementById('email').addEventListener('input', updateBtn);
+
+/* ════════════════════════════════════════════
+   BETALING
+   ════════════════════════════════════════════ */
+
+document.getElementById('btnPay').addEventListener('click', async () => {
+  const btn   = document.getElementById('btnPay');
+  const naam  = document.getElementById('naam').value.trim();
+  const email = document.getElementById('email').value.trim();
+  const item  = MENU[geselecteerd];
+  const total = Math.round((item.prijs + ADMIN_KOST) * 100); // in eurocent
+
+  btn.classList.add('loading');
+  btn.disabled = true;
+  toonFout('');
+
+  try {
+    // 1. Vraag een PaymentIntent aan via Apps Script
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        actie:  'create_payment_intent',
+        naam,
+        email,
+        gerecht: item.naam,
+        prijs:   item.prijs,
+        total,
+      })
+    });
+
+    const data = await resp.json();
+
+    if (!data.clientSecret) throw new Error(data.error || 'Geen client secret ontvangen.');
+
+    // 2. Bevestig de betaling met Stripe.js
+    const { error, paymentIntent } = await stripe.confirmCardPayment(data.clientSecret, {
+      payment_method: {
+        card: cardElement,
+        billing_details: { name: naam, email }
+      }
+    });
+
+    if (error) throw new Error(error.message);
+
+    // 3. Meldt aan Apps Script dat betaling gelukt is (schrijft naar Sheet)
+    await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        actie:       'bevestig_bestelling',
+        naam,
+        email,
+        gerecht:     item.naam,
+        prijs:       item.prijs,
+        paymentId:   paymentIntent.id,
+      })
+    });
+
+    toonSucces(naam, item, total);
+
+  } catch (err) {
+    toonFout(err.message || 'Er ging iets mis. Probeer opnieuw.');
+    btn.classList.remove('loading');
+    btn.disabled = false;
+  }
+});
+
+function toonFout(msg) {
+  const el = document.getElementById('errorBanner');
+  el.textContent = msg;
+  el.style.display = msg ? 'block' : 'none';
+}
+
+function toonSucces(naam, item, totalCent) {
+  document.getElementById('formBody').classList.add('hidden');
+  const sc = document.getElementById('successScreen');
+  sc.classList.add('show');
+  document.getElementById('successDetail').innerHTML = `
+    <div class="row"><span>Naam</span><span>${naam}</span></div>
+    <div class="row"><span>Gerecht</span><span>${item.naam}</span></div>
+    <div class="row"><span>Betaald</span><span>€ ${(totalCent/100).toFixed(2)}</span></div>
+  `;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ════════════════════════════════════════════
+   START
+   ════════════════════════════════════════════ */
+renderMenu();
+</script>
+</body>
+</html>
