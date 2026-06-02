@@ -410,34 +410,12 @@ const ADMIN_KOST   = 0.30;  // extra kost per bestelling in euro (dekt Stripe-fe
 let MENU = [];
 
 // Zorg ervoor dat hij niet meer van AJAX gebruikt, maar rechtstreeks naar de server gaat
-function laadMenu() {
-    fetch('https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute')
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-            document.getElementById('menu').innerHTML = data;
-        })
-        .catch(error => console.error(error));
-}
-
-  try {
-    const response = await fetch("laadbalk.html");
-    if (response.ok) {
-        const data = response.text();
-        document.getElementById('content').innerHTML = data;
-        console.log(document.getElementById('content'));
-    }
-} catch (error) {
-    console.error(error);
-}
-
-  async function laadMenu() {
+async function laadMenu() {
     try {
-        const response = await fetch("laadbalk.html");
+        const response = await fetch("https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute");
         if (response.ok) {
-            const data = response.text();
-            document.getElementById('content').innerHTML = data;
-            console.log(document.getElementById('content'));
+            const data = await response.text();
+            document.getElementById('menu').innerHTML = data;
         }
     } catch (error) {
         console.error(error);
