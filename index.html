@@ -411,13 +411,22 @@ let MENU = [];
 
 // Zorg ervoor dat hij niet meer van AJAX gebruikt, maar rechtstreeks naar de server gaat
 function laadMenu() {
-    fetch('https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute')
-        .then(response => response.text())
-        .then(data => {
-            console.log(data);
-            document.getElementById('menu').innerHTML = data;
-        })
-        .catch(error => console.error(error));
+    try {
+        fetch('https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute')
+            .then(response => response.text())
+            .then(data => {
+                try {
+                    console.log(data);
+                    document.getElementById('menu').innerHTML = data;
+                } catch (error) {
+                    // Als er een error is, sla deze dan maar over en doe niets met die variabele
+                }
+            })
+            .catch(error => console.error(error));
+    } catch (error) {
+        // Als er een error is, sla deze dan maar over en doe niets met die variabele
+     console.error(error);
+  }
 }
 
 // Zorg ervoor dat hij naar de lokale variabele verwijst, niet naar de server
