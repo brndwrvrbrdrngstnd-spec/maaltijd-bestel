@@ -409,19 +409,60 @@ const ADMIN_KOST   = 0.30;  // extra kost per bestelling in euro (dekt Stripe-fe
 
 let MENU = [];
 
-async function laadMenu() {
-  try {
-    const resp = await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({ actie: 'get_menu' })
-    });
-    MENU = await resp.json();
-    renderMenu();
-  } catch(err) {
-    document.getElementById('menuGrid').innerHTML = 
-      '<div class="menu-loading">Menu kon niet geladen worden. Herlaad de pagina.</div>';
-  }
+// Zorg ervoor dat hij niet meer van AJAX gebruikt, maar rechtstreeks naar de server gaat
+function laadMenu() {
+    fetch('https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute')
+        .then(response => response.text())
+        .then(data => {
+            console.log(data);
+            document.getElementById('menu').innerHTML = data;
+        })
+        .catch(error => console.error(error));
+}
+
+// Zorg ervoor dat hij naar de lokale variabele verwijst, niet naar de server
+function klikGerecht() {
+    // Niet lopen naar AJAX, maar naar het item in het scherm zelf (als ik het goed zie)
+    var selected = ___ALLOWED_HTML_0___ntains('selected');
+    if (!selected) {
+        document.querySelectorAll('#menu li').forEach(function(li) {
+            li.classList.remove('selected');
+        });
+        this.parentElement.classList.add('selected');
+
+        // Nu we de item hebben, zit die ook in de lokale variabele
+        var parent = this;
+        while (parent.nodeName.toLowerCase() !== 'body') {
+            if ('data-gerecht' in parent.dataset) {
+                alert(parent.dataset.gerecht);
+                $('#content').load('../gerecht/' + parent.dataset.gerecht + '.html');
+                break;
+            }
+            parent = parent.parentElement;
+        };
+    } else {
+        document.getElementById('menu').classList.remove('open');
+        document.getElementsByClassName("right")[0].style.width="50%";
+    }
+}
+
+// Zorg ervoor dat dit meteen wordt toegevoegd zodra het scherm gehelemaal is geladen
+function init() {
+    var parent = this;
+    while (parent !== null) {
+
+        if (/laadbalk/.test(parent.id)) {
+          parent.classList.add("onLoad");
+            // Hiermee kan je de script gaan gebruiken
+            laadMenu();
+
+            $('#menu').on('click', 'li > a:not([id="header"])', klikGerecht);
+            document.getElementById("menu").addEventListener("DOMNodeInserted", function () {
+              document.getElementById("menu").classList.add("menuLaden");
+                            });
+        }
+        parent = parent.parentElement;
+    };
 }
 /* ════════════════════════════════════════════
    INIT
