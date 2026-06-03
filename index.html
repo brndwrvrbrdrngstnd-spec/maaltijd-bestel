@@ -553,29 +553,6 @@ btn.addEventListener('click', async function eersteKlik() {
         return;
       }
 
-      // Stap 3 — Schrijf bestelling naar Sheet
-      await fetch(WEBHOOK_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'text/plain' },
-        body: JSON.stringify({
-          actie:     'bevestig_bestelling',
-          naam, email,
-          gerecht:   item.naam,
-          prijs:     item.prijs,
-          paymentId: paymentIntent.id,
-        })
-      });
-
-      toonSucces(naam, item, total);
-      btn.removeEventListener('click', tweedeKlik);
-    });
-
-  } catch (err) {
-    toonFout(err.message || 'Er ging iets mis. Probeer opnieuw.');
-    btn.classList.remove('loading');
-    btn.disabled = false;
-  }
-});
 
 /* ── HULPFUNCTIES ── */
 function toonFout(msg) {
