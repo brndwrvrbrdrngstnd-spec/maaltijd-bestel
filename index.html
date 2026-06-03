@@ -395,92 +395,33 @@
   </div><!-- /card -->
 
 <script>
-/* ════════════════════════════════════════════
-   CONFIGURATIE — pas deze 3 waarden aan
-   ════════════════════════════════════════════ */
+const STRIPE_KEY  = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
+const WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
+const ADMIN_KOST  = 0.30;
 
-const STRIPE_KEY   = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
-const WEBHOOK_URL  = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
-const ADMIN_KOST   = 0.30;  // extra kost per bestelling in euro (dekt Stripe-fees)
-
-/* ════════════════════════════════════════════
-   MENU — pas dit aan of laad vanuit Sheet
-   ════════════════════════════════════════════ */
-
+const stripe = Stripe(STRIPE_KEY);
 let MENU = [];
-
-// Zorg ervoor dat hij niet meer van AJAX gebruikt, maar rechtstreeks naar de server gaat
-async function laadMenu() {
-    try {
-        const response = await fetch("https://script.google.com/macros/d/A7Nfj6QH4B2V6DkC4M7bPBM5FvKzPZrO7JL/execute");
-        if (response.ok) {
-            const data = await response.text();
-            document.getElementById('menu').innerHTML = data;
-        }
-    } catch (error) {
-        console.error(error);
-    }
-}
-// Zorg ervoor dat hij naar de lokale variabele verwijst, niet naar de server
-function klikGerecht() {
-    // Niet lopen naar AJAX, maar naar het item in het scherm zelf (als ik het goed zie)
-    var selected = ___ALLOWED_HTML_0___ntains('selected');
-    if (!selected) {
-        document.querySelectorAll('#menu li').forEach(function(li) {
-            li.classList.remove('selected');
-        });
-        this.parentElement.classList.add('selected');
-
-        // Nu we de item hebben, zit die ook in de lokale variabele
-        var parent = this;
-        while (parent.nodeName.toLowerCase() !== 'body') {
-            if ('data-gerecht' in parent.dataset) {
-                alert(parent.dataset.gerecht);
-                $('#content').load('../gerecht/' + parent.dataset.gerecht + '.html');
-                break;
-            }
-            parent = parent.parentElement;
-        };
-    } else {
-        document.getElementById('menu').classList.remove('open');
-        document.getElementsByClassName("right")[0].style.width="50%";
-    }
-}
-
-// Zorg ervoor dat dit meteen wordt toegevoegd zodra het scherm gehelemaal is geladen
-function init() {
-    var parent = this;
-    while (parent !== null) {
-
-        if (/laadbalk/.test(parent.id)) {
-          parent.classList.add("onLoad");
-            // Hiermee kan je de script gaan gebruiken
-            laadMenu();
-
-            $('#menu').on('click', 'li > a:not([id="header"])', klikGerecht);
-            document.getElementById("menu").addEventListener("DOMNodeInserted", function () {
-              document.getElementById("menu").classList.add("menuLaden");
-                            });
-        }
-        parent = parent.parentElement;
-    };
-}
-/* ════════════════════════════════════════════
-   INIT
-   ════════════════════════════════════════════ */
-
-const stripe      = Stripe(STRIPE_KEY);
-const elements    = stripe.elements();
-
+let geselecteerd = null;
 let paymentElement = null;
 let clientSecret = null;
 
-/* ════════════════════════════════════════════
-   MENU RENDEREN
-   ════════════════════════════════════════════ */
+/* ── MENU LADEN VANUIT SHEET ── */
+async function laadMenu() {
+  try {
+    const resp = await fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({ actie: 'get_menu' })
+    });
+    MENU = await resp.json();
+    renderMenu();
+  } catch(err) {
+    document.getElementById('menuGrid').innerHTML =
+      '<div class="menu-loading">Menu kon niet geladen worden. Herlaad de pagina.</div>';
+  }
+}
 
-let geselecteerd = null;
-
+/* ── MENU RENDEREN ── */
 function renderMenu() {
   const grid = document.getElementById('menuGrid');
   grid.innerHTML = '';
@@ -519,10 +460,7 @@ function updateTotaal() {
   breakdownEl.textContent = `€ ${item.prijs.toFixed(2)} + € ${ADMIN_KOST.toFixed(2)} admin`;
 }
 
-/* ════════════════════════════════════════════
-   VALIDATIE & KNOP
-   ════════════════════════════════════════════ */
-
+/* ── VALIDATIE ── */
 function updateBtn() {
   const naam  = document.getElementById('naam').value.trim();
   const email = document.getElementById('email').value.trim();
@@ -533,12 +471,10 @@ function updateBtn() {
 document.getElementById('naam').addEventListener('input', updateBtn);
 document.getElementById('email').addEventListener('input', updateBtn);
 
-/* ════════════════════════════════════════════
-   BETALING
-   ════════════════════════════════════════════ */
+/* ── BETALING ── */
+const btn = document.getElementById('btnPay');
 
-document.getElementById('btnPay').addEventListener('click', async () => {
-  const btn   = document.getElementById('btnPay');
+btn.addEventListener('click', async function eersteKlik() {
   const naam  = document.getElementById('naam').value.trim();
   const email = document.getElementById('email').value.trim();
   const item  = MENU[geselecteerd];
@@ -549,16 +485,15 @@ document.getElementById('btnPay').addEventListener('click', async () => {
   toonFout('');
 
   try {
-    // Stap 1 — Haal client secret op
+    // Stap 1 — Haal client secret op bij Apps Script
     const resp = await fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        actie:   'create_payment_intent',
-        naam,
-        email,
+        actie: 'create_payment_intent',
+        naam, email,
         gerecht: item.naam,
-        prijs:   item.prijs,
+        prijs: item.prijs,
         total,
       })
     });
@@ -567,7 +502,7 @@ document.getElementById('btnPay').addEventListener('click', async () => {
     if (!data.clientSecret) throw new Error(data.error || 'Geen client secret ontvangen.');
     clientSecret = data.clientSecret;
 
-    // Stap 2 — Laad Payment Element met Bancontact
+    // Stap 2 — Laad Stripe Payment Element (Bancontact + kaart)
     const elementsInstance = stripe.elements({
       clientSecret,
       appearance: {
@@ -589,14 +524,14 @@ document.getElementById('btnPay').addEventListener('click', async () => {
 
     paymentElement.mount('#payment-element');
 
-    // Toon bevestigingsknop
     btn.classList.remove('loading');
     btn.disabled = false;
     btn.querySelector('.btn-text').textContent = 'Bevestig betaling';
-    btn.removeEventListener('click', arguments.callee);
 
-    // Stap 3 — Tweede klik bevestigt betaling
-    btn.addEventListener('click', async () => {
+    // Verwijder deze handler, voeg tweede toe
+    btn.removeEventListener('click', eersteKlik);
+
+    btn.addEventListener('click', async function tweedeKlik() {
       btn.classList.add('loading');
       btn.disabled = true;
 
@@ -618,14 +553,13 @@ document.getElementById('btnPay').addEventListener('click', async () => {
         return;
       }
 
-      // Stap 4 — Bevestig in Sheet
+      // Stap 3 — Schrijf bestelling naar Sheet
       await fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           actie:     'bevestig_bestelling',
-          naam,
-          email,
+          naam, email,
           gerecht:   item.naam,
           prijs:     item.prijs,
           paymentId: paymentIntent.id,
@@ -633,6 +567,7 @@ document.getElementById('btnPay').addEventListener('click', async () => {
       });
 
       toonSucces(naam, item, total);
+      btn.removeEventListener('click', tweedeKlik);
     });
 
   } catch (err) {
@@ -642,31 +577,7 @@ document.getElementById('btnPay').addEventListener('click', async () => {
   }
 });
 
-    if (error) throw new Error(error.message);
-
-    // 3. Meldt aan Apps Script dat betaling gelukt is (schrijft naar Sheet)
-    await fetch(WEBHOOK_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'text/plain' },
-      body: JSON.stringify({
-        actie:       'bevestig_bestelling',
-        naam,
-        email,
-        gerecht:     item.naam,
-        prijs:       item.prijs,
-        paymentId:   paymentIntent.id,
-      })
-    });
-
-    toonSucces(naam, item, total);
-
-  } catch (err) {
-    toonFout(err.message || 'Er ging iets mis. Probeer opnieuw.');
-    btn.classList.remove('loading');
-    btn.disabled = false;
-  }
-});
-
+/* ── HULPFUNCTIES ── */
 function toonFout(msg) {
   const el = document.getElementById('errorBanner');
   el.textContent = msg;
@@ -685,9 +596,7 @@ function toonSucces(naam, item, totalCent) {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-/* ════════════════════════════════════════════
-   START
-   ════════════════════════════════════════════ */
+/* ── START ── */
 laadMenu();
 </script>
 </body>
