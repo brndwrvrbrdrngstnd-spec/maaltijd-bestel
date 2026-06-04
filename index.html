@@ -247,6 +247,44 @@
 </div>
 
 <script>
+  // Controleer of we terugkeren van een Stripe redirect
+var urlParams = new URLSearchParams(window.location.search);
+var returnedPaymentIntent = urlParams.get('payment_intent');
+var returnedStatus = urlParams.get('redirect_status');
+
+if (returnedPaymentIntent && returnedStatus === 'succeeded') {
+  var opgeslagen = sessionStorage.getItem('refter_bestelling');
+  if (opgeslagen) {
+    var bestelling = JSON.parse(opgeslagen);
+    sessionStorage.removeItem('refter_bestelling');
+
+    fetch(WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain' },
+      body: JSON.stringify({
+        actie:     'bevestig_bestelling',
+        naam:      bestelling.naam,
+        email:     bestelling.email,
+        gerecht:   bestelling.gerecht,
+        prijs:     bestelling.prijs,
+        paymentId: returnedPaymentIntent
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      console.log('Sheet response na redirect:', JSON.stringify(d));
+      // Toon succesbericht
+      document.addEventListener('DOMContentLoaded', function() {
+        document.getElementById('formBody').classList.add('hidden');
+        document.getElementById('successScreen').classList.add('show');
+        document.getElementById('successDetail').innerHTML =
+          '<div class="row"><span>Naam</span><span>' + bestelling.naam + '</span></div>' +
+          '<div class="row"><span>Gerecht</span><span>' + bestelling.gerecht + '</span></div>' +
+          '<div class="row"><span>Betaald</span><span>€ ' + (bestelling.total/100).toFixed(2) + '</span></div>';
+      });
+    });
+  }
+}
 var STRIPE_KEY  = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
 var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
 var ADMIN_KOST  = 0.30;
@@ -351,7 +389,16 @@ document.getElementById('btnPay').addEventListener('click', function() {
   if (betalingKlaar) {
     btn.classList.add('loading');
     btn.disabled = true;
-
+    
+// Sla bestelgegevens op voor het geval er een redirect plaatsvindt
+sessionStorage.setItem('refter_bestelling', JSON.stringify({
+  naam:    naam,
+  email:   email,
+  gerecht: item.naam,
+  prijs:   item.prijs,
+  total:   total
+}));
+    
     stripe.confirmPayment({
       elements: elementsInstance,
       confirmParams: {
@@ -447,6 +494,6 @@ document.getElementById('btnPay').addEventListener('click', function() {
 laadMenu();
 </script>
 
-  <p style="text-aling:center; font-size:0.7rem; color:#aaa; margin-top:1.5rem;">v1.0</p>
+  <p style="text-aling:center; font-size:0.7rem; color:#aaa; margin-top:1.5rem;">v0.52</p>
 </body>
 </html>
