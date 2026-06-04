@@ -153,7 +153,7 @@
   </div>
 </div>
 
-<p class="version">Alpha test versie 0.55</p>
+<p class="version">Alpha test versie 0.56</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -304,7 +304,7 @@ function renderMenu() {
     el.className = 'menu-item';
     el.innerHTML =
       '<div class="item-name">' + item.naam + '</div>' +
-      '<div class="item-price">€ ' + item.prijs.toFixed(2) + '</div>' +
+      '<div class="item-price">€ ' + (item.prijs + ADMIN_KOST).toFixed(2) + '</div>' +
       '<div class="check"></div>';
     el.addEventListener('click', function() { selectItem(i, el); });
     grid.appendChild(el);
