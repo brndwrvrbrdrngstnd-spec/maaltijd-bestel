@@ -2,6 +2,7 @@
 <html lang="nl">
 <head>
   <meta charset="UTF-8" />
+  <link rel="icon" href="data:,">
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Refter Bestelling</title>
   <script src="https://js.stripe.com/v3/"></script>
@@ -33,83 +34,23 @@
       padding: 2rem 1rem 4rem;
     }
     .header { text-align: center; margin-bottom: 2rem; animation: fadeUp 0.5s ease both; }
-    .header h1 {
-      font-family: 'DM Serif Display', serif;
-      font-size: clamp(2rem, 6vw, 2.8rem);
-      color: var(--accent-dk);
-      line-height: 1.1;
-      margin-bottom: 0.4rem;
-    }
+    .header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 6vw, 2.8rem); color: var(--accent-dk); line-height: 1.1; margin-bottom: 0.4rem; }
     .header p { font-size: 0.95rem; color: var(--ink-muted); }
-    .card {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 2rem;
-      width: 100%;
-      max-width: 480px;
-      animation: fadeUp 0.5s 0.1s ease both;
-    }
-    .section-label {
-      font-size: 0.75rem;
-      font-weight: 500;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      color: var(--ink-muted);
-      margin-bottom: 0.75rem;
-    }
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 480px; animation: fadeUp 0.5s 0.1s ease both; }
+    .section-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.75rem; }
     .field { margin-bottom: 1.25rem; }
     label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--ink); margin-bottom: 0.4rem; }
-    input[type="text"], input[type="email"] {
-      width: 100%;
-      padding: 0.65rem 0.9rem;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      font-family: inherit;
-      font-size: 0.95rem;
-      color: var(--ink);
-      background: var(--bg);
-      outline: none;
-      transition: border-color 0.15s;
-    }
+    input[type="text"], input[type="email"] { width: 100%; padding: 0.65rem 0.9rem; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; font-size: 0.95rem; color: var(--ink); background: var(--bg); outline: none; transition: border-color 0.15s; }
     input:focus { border-color: var(--accent); background: #fff; }
-    .menu-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-      margin-bottom: 1.5rem;
-    }
-    .menu-item {
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 0.8rem;
-      cursor: pointer;
-      transition: border-color 0.15s, background 0.15s;
-      user-select: none;
-      position: relative;
-    }
+    .menu-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 1.5rem; }
+    .menu-item { border: 1.5px solid var(--border); border-radius: 10px; padding: 0.8rem; cursor: pointer; transition: border-color 0.15s, background 0.15s; user-select: none; position: relative; }
     .menu-item:hover { border-color: var(--accent); background: #f9fdf9; }
     .menu-item.selected { border-color: var(--accent); background: var(--accent-lt); }
     .menu-item .item-name { font-size: 0.9rem; font-weight: 500; color: var(--ink); margin-bottom: 2px; }
     .menu-item .item-price { font-size: 0.8rem; color: var(--ink-muted); }
-    .menu-item .check {
-      position: absolute; top: 8px; right: 8px;
-      width: 18px; height: 18px;
-      border-radius: 50%;
-      background: var(--accent);
-      display: none;
-      align-items: center;
-      justify-content: center;
-    }
+    .menu-item .check { position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; border-radius: 50%; background: var(--accent); display: none; align-items: center; justify-content: center; }
     .menu-item.selected .check { display: flex; }
-    .menu-item .check::after {
-      content: '';
-      width: 5px; height: 9px;
-      border-right: 2px solid #fff;
-      border-bottom: 2px solid #fff;
-      transform: rotate(40deg) translate(-1px,-1px);
-    }
+    .menu-item .check::after { content: ''; width: 5px; height: 9px; border-right: 2px solid #fff; border-bottom: 2px solid #fff; transform: rotate(40deg) translate(-1px,-1px); }
     .menu-loading { text-align: center; color: var(--ink-muted); font-size: 0.875rem; padding: 1.5rem 0; }
     .divider { height: 1px; background: var(--border); margin: 1.5rem 0; }
     .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
@@ -118,49 +59,18 @@
     .total-breakdown { font-size: 0.78rem; color: var(--ink-muted); text-align: right; margin-top: -1rem; margin-bottom: 1.25rem; }
     #payment-element { margin-bottom: 1.25rem; }
     #card-errors { color: var(--warn); font-size: 0.8rem; margin-top: 0.4rem; min-height: 1.2em; }
-    .btn-pay {
-      width: 100%;
-      padding: 0.9rem;
-      background: var(--accent);
-      color: #fff;
-      border: none;
-      border-radius: 10px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem;
-      font-weight: 500;
-      cursor: pointer;
-      transition: background 0.15s, transform 0.1s;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 8px;
-    }
+    .btn-pay { width: 100%; padding: 0.9rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
     .btn-pay:hover:not(:disabled) { background: var(--accent-dk); }
     .btn-pay:active:not(:disabled) { transform: scale(0.98); }
     .btn-pay:disabled { opacity: 0.55; cursor: not-allowed; }
-    .spinner {
-      width: 16px; height: 16px;
-      border: 2px solid rgba(255,255,255,0.4);
-      border-top-color: #fff;
-      border-radius: 50%;
-      animation: spin 0.7s linear infinite;
-      display: none;
-    }
+    .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
     .btn-pay.loading .spinner { display: block; }
     .btn-pay.loading .btn-text { display: none; }
     .notice { font-size: 0.75rem; color: var(--ink-muted); text-align: center; margin-top: 1rem; line-height: 1.5; }
     .success-screen { display: none; text-align: center; padding: 1rem 0; }
     .success-screen.show { display: block; }
     .form-body.hidden { display: none; }
-    .success-icon {
-      width: 64px; height: 64px;
-      background: var(--accent-lt);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 1.25rem;
-    }
+    .success-icon { width: 64px; height: 64px; background: var(--accent-lt); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.25rem; }
     .success-icon svg { width: 32px; height: 32px; }
     .success-screen h2 { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--accent-dk); margin-bottom: 0.5rem; }
     .success-screen p { font-size: 0.9rem; color: var(--ink-muted); line-height: 1.6; }
@@ -168,16 +78,8 @@
     .success-detail .row { display: flex; justify-content: space-between; font-size: 0.875rem; padding: 3px 0; }
     .success-detail .row span:first-child { color: var(--ink-muted); }
     .success-detail .row span:last-child { font-weight: 500; }
-    .error-banner {
-      background: var(--warn-lt);
-      border: 1px solid rgba(181,69,27,0.2);
-      border-radius: 8px;
-      padding: 0.75rem 1rem;
-      font-size: 0.85rem;
-      color: var(--warn);
-      margin-bottom: 1rem;
-      display: none;
-    }
+    .error-banner { background: var(--warn-lt); border: 1px solid rgba(181,69,27,0.2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--warn); margin-bottom: 1rem; display: none; }
+    .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 1.5rem; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -190,7 +92,6 @@
 </div>
 
 <div class="card">
-
   <div class="success-screen" id="successScreen">
     <div class="success-icon">
       <svg viewBox="0 0 24 24" fill="none" stroke="#2D6A4F" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -246,11 +147,18 @@
   </div>
 </div>
 
+<p class="version">v2.0</p>
+
 <script>
-  // Controleer of we terugkeren van een Stripe redirect
-var urlParams = new URLSearchParams(window.location.search);
+// ── CONFIGURATIE ──────────────────────────────────────
+var STRIPE_KEY  = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
+var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
+var ADMIN_KOST  = 0.30;
+
+// ── REDIRECT AFHANDELING (Bancontact stuurt terug naar deze pagina) ──
+var urlParams             = new URLSearchParams(window.location.search);
 var returnedPaymentIntent = urlParams.get('payment_intent');
-var returnedStatus = urlParams.get('redirect_status');
+var returnedStatus        = urlParams.get('redirect_status');
 
 if (returnedPaymentIntent && returnedStatus === 'succeeded') {
   var opgeslagen = sessionStorage.getItem('refter_bestelling');
@@ -273,30 +181,30 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       console.log('Sheet response na redirect:', JSON.stringify(d));
-      // Toon succesbericht
-      document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('formBody').classList.add('hidden');
-        document.getElementById('successScreen').classList.add('show');
-        document.getElementById('successDetail').innerHTML =
-          '<div class="row"><span>Naam</span><span>' + bestelling.naam + '</span></div>' +
-          '<div class="row"><span>Gerecht</span><span>' + bestelling.gerecht + '</span></div>' +
-          '<div class="row"><span>Betaald</span><span>€ ' + (bestelling.total/100).toFixed(2) + '</span></div>';
-      });
+      document.getElementById('formBody').classList.add('hidden');
+      var sc = document.getElementById('successScreen');
+      sc.classList.add('show');
+      document.getElementById('successDetail').innerHTML =
+        '<div class="row"><span>Naam</span><span>' + bestelling.naam + '</span></div>' +
+        '<div class="row"><span>Gerecht</span><span>' + bestelling.gerecht + '</span></div>' +
+        '<div class="row"><span>Betaald</span><span>€ ' + (bestelling.total / 100).toFixed(2) + '</span></div>';
+    })
+    .catch(function(err) {
+      console.error('Fout na redirect:', err);
     });
   }
 }
-var STRIPE_KEY  = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
-var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
-var ADMIN_KOST  = 0.30;
 
-var stripe = Stripe(STRIPE_KEY);
-var MENU = [];
-var geselecteerd = null;
-var paymentElement = null;
-var clientSecret = null;
-var betalingKlaar = false;
+// ── STRIPE & STATE ────────────────────────────────────
+var stripe          = Stripe(STRIPE_KEY);
+var MENU            = [];
+var geselecteerd    = null;
+var paymentElement  = null;
+var clientSecret    = null;
+var betalingKlaar   = false;
 var elementsInstance = null;
 
+// ── MENU LADEN VANUIT SHEET ───────────────────────────
 function laadMenu() {
   fetch(WEBHOOK_URL, {
     method: 'POST',
@@ -348,10 +256,11 @@ function updateTotaal() {
   }
   var item  = MENU[geselecteerd];
   var total = item.prijs + ADMIN_KOST;
-  totaalEl.textContent = '€ ' + total.toFixed(2);
+  totaalEl.textContent  = '€ ' + total.toFixed(2);
   breakdownEl.textContent = '€ ' + item.prijs.toFixed(2) + ' + € ' + ADMIN_KOST.toFixed(2) + ' admin';
 }
 
+// ── VALIDATIE ─────────────────────────────────────────
 function updateBtn() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
@@ -362,23 +271,24 @@ function updateBtn() {
 document.getElementById('naam').addEventListener('input', updateBtn);
 document.getElementById('email').addEventListener('input', updateBtn);
 
+// ── HULPFUNCTIES ──────────────────────────────────────
 function toonFout(msg) {
   var el = document.getElementById('errorBanner');
-  el.textContent = msg;
+  el.textContent  = msg;
   el.style.display = msg ? 'block' : 'none';
 }
 
 function toonSucces(naam, item, totalCent) {
   document.getElementById('formBody').classList.add('hidden');
-  var sc = document.getElementById('successScreen');
-  sc.classList.add('show');
+  document.getElementById('successScreen').classList.add('show');
   document.getElementById('successDetail').innerHTML =
-    '<div class="row"><span>Naam</span><span>' + naam + '</span></div>' +
+    '<div class="row"><span>Naam</span><span>'    + naam      + '</span></div>' +
     '<div class="row"><span>Gerecht</span><span>' + item.naam + '</span></div>' +
-    '<div class="row"><span>Betaald</span><span>€ ' + (totalCent/100).toFixed(2) + '</span></div>';
+    '<div class="row"><span>Betaald</span><span>€ ' + (totalCent / 100).toFixed(2) + '</span></div>';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+// ── BETAAL KNOP ───────────────────────────────────────
 document.getElementById('btnPay').addEventListener('click', function() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
@@ -386,29 +296,20 @@ document.getElementById('btnPay').addEventListener('click', function() {
   var total = Math.round((item.prijs + ADMIN_KOST) * 100);
   var btn   = document.getElementById('btnPay');
 
+  // TWEEDE KLIK: bevestig betaling
   if (betalingKlaar) {
     btn.classList.add('loading');
     btn.disabled = true;
-    
-// Sla bestelgegevens op voor het geval er een redirect plaatsvindt
-sessionStorage.setItem('refter_bestelling', JSON.stringify({
-  naam:    naam,
-  email:   email,
-  gerecht: item.naam,
-  prijs:   item.prijs,
-  total:   total
-}));
-    
+
     stripe.confirmPayment({
       elements: elementsInstance,
       confirmParams: {
-        return_url: window.location.href,
+        return_url: window.location.href.split('?')[0],
         payment_method_data: { billing_details: { name: naam, email: email } }
       },
       redirect: 'if_required'
-   }).then(function(result) {
-      console.log('Stripe result:', JSON.stringify(result));
-
+    })
+    .then(function(result) {
       if (result.error) {
         toonFout(result.error.message);
         btn.classList.remove('loading');
@@ -416,14 +317,7 @@ sessionStorage.setItem('refter_bestelling', JSON.stringify({
         return;
       }
 
-      if (!result.paymentIntent) {
-        console.error('Geen paymentIntent in result!');
-        toonFout('Betaling gelukt maar bestelling kon niet worden opgeslagen. Contacteer de beheerder.');
-        return;
-      }
-
-      console.log('PaymentIntent ID:', result.paymentIntent.id);
-
+      // Geen redirect — direct bevestigen
       fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -435,7 +329,14 @@ sessionStorage.setItem('refter_bestelling', JSON.stringify({
           prijs:     item.prijs,
           paymentId: result.paymentIntent.id
         })
-      }).then(function() {
+      })
+      .then(function(r) { return r.json(); })
+      .then(function(d) {
+        console.log('Sheet response:', JSON.stringify(d));
+        toonSucces(naam, item, total);
+      })
+      .catch(function(err) {
+        console.error('Sheet fout:', err);
         toonSucces(naam, item, total);
       });
     });
@@ -443,9 +344,19 @@ sessionStorage.setItem('refter_bestelling', JSON.stringify({
     return;
   }
 
+  // EERSTE KLIK: maak PaymentIntent en laad betaalformulier
   btn.classList.add('loading');
   btn.disabled = true;
   toonFout('');
+
+  // Sla bestelling op voor het geval Bancontact redirect plaatsvindt
+  sessionStorage.setItem('refter_bestelling', JSON.stringify({
+    naam:    naam,
+    email:   email,
+    gerecht: item.naam,
+    prijs:   item.prijs,
+    total:   total
+  }));
 
   fetch(WEBHOOK_URL, {
     method: 'POST',
@@ -491,9 +402,9 @@ sessionStorage.setItem('refter_bestelling', JSON.stringify({
   });
 });
 
+// ── START ─────────────────────────────────────────────
 laadMenu();
 </script>
-
-  <p style="text-aling:center; font-size:0.7rem; color:#aaa; margin-top:1.5rem;">v0.52</p>
+  <p style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:1.5rem;">v0.54</p>
 </body>
 </html>
