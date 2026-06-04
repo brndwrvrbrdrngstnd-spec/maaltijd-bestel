@@ -24,11 +24,99 @@
       --shadow:    0 2px 16px rgba(0,0,0,0.07);
     }
     html { background: var(--bg); }
-    body { font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; }
+    body { font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; overflow-x: hidden; }
+
+    /* ── LICHTSLINGER ── */
+    .lichtslinger {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 36px;
+      z-index: 100;
+      pointer-events: none;
+    }
+    .lichtslinger-draad {
+      position: absolute;
+      top: 8px; left: 0; right: 0;
+      height: 2px;
+      background: #555;
+    }
+    .lamp {
+      position: absolute;
+      top: 4px;
+      width: 12px;
+      height: 16px;
+      border-radius: 50% 50% 60% 60%;
+      transform: translateX(-50%);
+    }
+    .lamp::before {
+      content: '';
+      position: absolute;
+      top: -4px; left: 3px;
+      width: 6px; height: 5px;
+      background: #777;
+      border-radius: 2px 2px 0 0;
+    }
+    .lamp.rood    { background: #e63946; box-shadow: 0 0 8px 3px rgba(230,57,70,0.7); }
+    .lamp.geel    { background: #ffd166; box-shadow: 0 0 8px 3px rgba(255,209,102,0.7); }
+    .lamp.groen   { background: #06d6a0; box-shadow: 0 0 8px 3px rgba(6,214,160,0.7); }
+    .lamp.blauw   { background: #118ab2; box-shadow: 0 0 8px 3px rgba(17,138,178,0.7); }
+    .lamp.oranje  { background: #fb8500; box-shadow: 0 0 8px 3px rgba(251,133,0,0.7); }
+    .lamp.paars   { background: #9b5de5; box-shadow: 0 0 8px 3px rgba(155,93,229,0.7); }
+    .lamp.knip1 { animation: knip 2.1s ease-in-out infinite; }
+    .lamp.knip2 { animation: knip 1.7s ease-in-out infinite 0.4s; }
+    .lamp.knip3 { animation: knip 2.5s ease-in-out infinite 0.9s; }
+    @keyframes knip {
+      0%, 90%, 100% { opacity: 1; }
+      95% { opacity: 0.15; }
+    }
+
+    /* ── SNEEUW ── */
+    .sneeuwvlok {
+      position: fixed;
+      top: -2em;
+      color: #fff;
+      pointer-events: none;
+      z-index: 99;
+      user-select: none;
+      animation: valSneeuw linear infinite;
+      text-shadow: 0 0 4px rgba(180,220,255,0.8);
+    }
+    @keyframes valSneeuw {
+      0%   { transform: translateY(0) translateX(0) rotate(0deg);   opacity: 0; }
+      5%   { opacity: 1; }
+      95%  { opacity: 0.6; }
+      100% { transform: translateY(105vh) translateX(var(--drift)) rotate(360deg); opacity: 0; }
+    }
+
+    /* ── KERSTBOOM ── */
+    .kerst-boom-wrap {
+      position: absolute;
+      left: -90px;
+      top: -10px;
+      pointer-events: none;
+    }
+
+    /* ── PAAS & HALLOWEEN decoraties ── */
+    .deco-item {
+      position: fixed;
+      font-size: 2rem;
+      pointer-events: none;
+      z-index: 99;
+      animation: decoFloat 6s ease-in-out infinite;
+    }
+    @keyframes decoFloat {
+      0%, 100% { transform: translateY(0) rotate(-5deg); }
+      50%       { transform: translateY(-12px) rotate(5deg); }
+    }
+
+    /* ── HEADER ── */
     .header { text-align: center; margin-bottom: 2rem; animation: fadeUp 0.5s ease both; position: relative; }
+    .header-inner { display: inline-flex; align-items: center; justify-content: center; position: relative; }
     .header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 6vw, 2.8rem); color: var(--accent-dk); line-height: 1.1; margin-bottom: 0.4rem; }
     .header p { font-size: 0.95rem; color: var(--ink-muted); }
-    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 480px; animation: fadeUp 0.5s 0.1s ease both; }
+
+    /* ── CARD ── */
+    .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 480px; animation: fadeUp 0.5s 0.1s ease both; position: relative; z-index: 1; }
     .section-label { font-size: 0.75rem; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-muted); margin-bottom: 0.75rem; }
     .field { margin-bottom: 1.25rem; }
     label { display: block; font-size: 0.875rem; font-weight: 500; color: var(--ink); margin-bottom: 0.4rem; }
@@ -73,30 +161,6 @@
     .success-detail .row span:last-child { font-weight: 500; }
     .error-banner { background: var(--warn-lt); border: 1px solid rgba(181,69,27,0.2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--warn); margin-bottom: 1rem; display: none; }
     .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 1.5rem; }
-
-    /* ── SEIZOENSDECORATIES ── */
-    .deco { position: fixed; pointer-events: none; z-index: 0; }
-    .deco-item { position: absolute; animation: decoFloat 6s ease-in-out infinite; }
-
-    /* Pasen */
-    .paas-ei { font-size: 2rem; }
-    .paas-haas { font-size: 2.5rem; }
-
-    /* Halloween */
-    .halloween-item { font-size: 2rem; opacity: 0.7; }
-
-    /* Kerst */
-    .kerst-item { font-size: 2rem; }
-    .kerst-ster { animation: twinkle 1.5s ease-in-out infinite alternate !important; }
-
-    @keyframes decoFloat {
-      0%, 100% { transform: translateY(0px) rotate(-5deg); }
-      50%       { transform: translateY(-12px) rotate(5deg); }
-    }
-    @keyframes twinkle {
-      from { opacity: 0.4; transform: scale(0.9); }
-      to   { opacity: 1;   transform: scale(1.1); }
-    }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -104,8 +168,12 @@
 <body>
 
 <div class="header">
-  <h1>Refter</h1>
-  <p>Bestel je maaltijd &amp; betaal meteen</p>
+  <div class="header-inner" id="headerInner">
+    <div>
+      <h1>Refter</h1>
+      <p>Bestel je maaltijd &amp; betaal meteen</p>
+    </div>
+  </div>
 </div>
 
 <div class="card">
@@ -153,14 +221,14 @@
   </div>
 </div>
 
-<p class="version">Alpha test versie 0.57</p>
+<p class="version">v4.0</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
 var STRIPE_KEY   = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
 var WEBHOOK_URL  = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
 var ADMIN_KOST   = 0.30;
-var EMAIL_DOMEIN = 'zone1.be'; // ← pas aan indien nodig
+var EMAIL_DOMEIN = 'zone1.be';
 
 // ── REDIRECT AFHANDELING (Bancontact) ─────────────────
 var urlParams             = new URLSearchParams(window.location.search);
@@ -176,11 +244,9 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
       body: JSON.stringify({
-        actie:     'bevestig_bestelling',
-        naam:      bestelling.naam,
-        email:     bestelling.email,
-        gerecht:   bestelling.gerecht,
-        prijs:     bestelling.prijs,
+        actie: 'bevestig_bestelling',
+        naam: bestelling.naam, email: bestelling.email,
+        gerecht: bestelling.gerecht, prijs: bestelling.prijs,
         paymentId: returnedPaymentIntent
       })
     })
@@ -193,63 +259,171 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
   }
 }
 
-// ── SEIZOENSDECORATIES ────────────────────────────────
+// ── SEIZOEN DETECTIE ──────────────────────────────────
 function getSezoen() {
-  // Developer preview: voeg ?seizoen=pasen / kerst / halloween toe aan de URL
   var preview = new URLSearchParams(window.location.search).get('seizoen');
   if (preview) return preview;
-
-  var nu    = new Date();
-  var maand = nu.getMonth() + 1;
-  var dag   = nu.getDate();
+  var nu = new Date(); var maand = nu.getMonth() + 1; var dag = nu.getDate();
   if (maand === 10) return 'halloween';
   if (maand === 12 && dag <= 26) return 'kerst';
   if ((maand === 3 && dag >= 15) || (maand === 4 && dag <= 30)) return 'pasen';
   return null;
 }
 
+// ── KERST: LICHTSLINGER ───────────────────────────────
+function maakLichtslinger() {
+  var kleuren = ['rood','geel','groen','blauw','oranje','paars'];
+  var knipKlassen = ['knip1','knip2','knip3','','knip2','knip1'];
+  var wrap = document.createElement('div');
+  wrap.className = 'lichtslinger';
+  var draad = document.createElement('div');
+  draad.className = 'lichtslinger-draad';
+  wrap.appendChild(draad);
+
+  var breedte = window.innerWidth;
+  var afstand = 48;
+  var aantalLampen = Math.floor(breedte / afstand) + 2;
+
+  for (var i = 0; i < aantalLampen; i++) {
+    var lamp = document.createElement('div');
+    var kleurIndex = i % kleuren.length;
+    lamp.className = 'lamp ' + kleuren[kleurIndex] + ' ' + knipKlassen[kleurIndex];
+    lamp.style.left = (i * afstand + 24) + 'px';
+    wrap.appendChild(lamp);
+  }
+  document.body.appendChild(wrap);
+  // Ruimte maken voor lichtslinger
+  document.body.style.paddingTop = '3.5rem';
+}
+
+// ── KERST: SNEEUW ─────────────────────────────────────
+function maakSneeuw() {
+  var vlokken = ['❄','❅','❆','✦','*'];
+  var aantalVlokken = 55;
+
+  for (var i = 0; i < aantalVlokken; i++) {
+    (function() {
+      var el = document.createElement('div');
+      el.className = 'sneeuwvlok';
+      el.textContent = vlokken[Math.floor(Math.random() * vlokken.length)];
+
+      var links      = Math.random() * 100;
+      var grootte    = 0.7 + Math.random() * 1.2;
+      var duur       = 8 + Math.random() * 14;
+      var vertraging = Math.random() * 15;
+      var drift      = (Math.random() - 0.5) * 120;
+      var opacity    = 0.5 + Math.random() * 0.5;
+
+      el.style.left       = links + 'vw';
+      el.style.fontSize   = grootte + 'em';
+      el.style.opacity    = opacity;
+      el.style.animationDuration = duur + 's';
+      el.style.animationDelay   = '-' + vertraging + 's';
+      el.style.setProperty('--drift', drift + 'px');
+
+      document.body.appendChild(el);
+    })();
+  }
+}
+
+// ── KERST: KERSTBOOM SVG ──────────────────────────────
+function maakKerstboom() {
+  var boomSVG = `<svg width="72" height="100" viewBox="0 0 72 100" xmlns="http://www.w3.org/2000/svg">
+    <!-- Ster -->
+    <polygon points="36,2 38.5,9 46,9 40,13.5 42.5,21 36,16.5 29.5,21 32,13.5 26,9 33.5,9"
+      fill="#FFD700" stroke="#FFA500" stroke-width="0.5"/>
+    <!-- Laag 1 bovenste -->
+    <polygon points="36,16 48,34 24,34" fill="#1a7a3a"/>
+    <polygon points="36,16 48,34 24,34" fill="none" stroke="#145c2b" stroke-width="0.5"/>
+    <!-- Laag 2 midden -->
+    <polygon points="36,26 52,48 20,48" fill="#1e8f42"/>
+    <polygon points="36,26 52,48 20,48" fill="none" stroke="#145c2b" stroke-width="0.5"/>
+    <!-- Laag 3 onderste -->
+    <polygon points="36,38 58,64 14,64" fill="#22a44c"/>
+    <polygon points="36,38 58,64 14,64" fill="none" stroke="#145c2b" stroke-width="0.5"/>
+    <!-- Stam -->
+    <rect x="31" y="64" width="10" height="14" rx="2" fill="#8B4513"/>
+    <!-- Sneeuw op takken -->
+    <polygon points="36,16 44,28 28,28" fill="rgba(255,255,255,0.25)"/>
+    <polygon points="36,26 48,42 24,42" fill="rgba(255,255,255,0.2)"/>
+    <polygon points="36,38 54,58 18,58" fill="rgba(255,255,255,0.15)"/>
+    <!-- Kerstballen -->
+    <circle cx="30" cy="31" r="3" fill="#e63946" opacity="0.9"/>
+    <circle cx="42" cy="31" r="3" fill="#ffd166" opacity="0.9"/>
+    <circle cx="24" cy="45" r="3" fill="#06d6a0" opacity="0.9"/>
+    <circle cx="36" cy="44" r="3" fill="#e63946" opacity="0.9"/>
+    <circle cx="48" cy="45" r="3" fill="#9b5de5" opacity="0.9"/>
+    <circle cx="20" cy="61" r="3" fill="#ffd166" opacity="0.9"/>
+    <circle cx="32" cy="60" r="3" fill="#118ab2" opacity="0.9"/>
+    <circle cx="44" cy="60" r="3" fill="#e63946" opacity="0.9"/>
+    <circle cx="54" cy="61" r="3" fill="#06d6a0" opacity="0.9"/>
+    <!-- Lichtjes op boom -->
+    <circle cx="36" cy="23" r="2" fill="#fff" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.8s" repeatCount="indefinite"/></circle>
+    <circle cx="27" cy="37" r="2" fill="#ffd166" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="2.2s" repeatCount="indefinite" begin="0.4s"/></circle>
+    <circle cx="45" cy="37" r="2" fill="#e63946" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.5s" repeatCount="indefinite" begin="0.9s"/></circle>
+    <circle cx="22" cy="53" r="2" fill="#06d6a0" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="2s" repeatCount="indefinite" begin="0.2s"/></circle>
+    <circle cx="50" cy="53" r="2" fill="#9b5de5" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="1.6s" repeatCount="indefinite" begin="0.7s"/></circle>
+    <circle cx="36" cy="54" r="2" fill="#ffd166" opacity="0.9"><animate attributeName="opacity" values="0.9;0.2;0.9" dur="2.3s" repeatCount="indefinite" begin="1.1s"/></circle>
+  </svg>`;
+
+  var wrap = document.createElement('div');
+  wrap.className = 'kerst-boom-wrap';
+  wrap.innerHTML = boomSVG;
+
+  var headerInner = document.getElementById('headerInner');
+  headerInner.style.position = 'relative';
+  headerInner.insertBefore(wrap, headerInner.firstChild);
+}
+
+// ── PAAS DECORATIES ───────────────────────────────────
+function maakPaasDecoraties() {
+  var items = [
+    { s: '🐰', l: '3%',  t: '12%', d: '0s'   },
+    { s: '🥚', l: '88%', t: '16%', d: '1s'   },
+    { s: '🌸', l: '6%',  t: '75%', d: '2s'   },
+    { s: '🐣', l: '85%', t: '70%', d: '0.5s' },
+    { s: '🥕', l: '45%', t: '4%',  d: '1.5s' },
+  ];
+  items.forEach(function(item) {
+    var el = document.createElement('div');
+    el.className = 'deco-item';
+    el.textContent = item.s;
+    el.style.cssText = 'left:' + item.l + ';top:' + item.t + ';animation-delay:' + item.d;
+    document.body.appendChild(el);
+  });
+}
+
+// ── HALLOWEEN DECORATIES ──────────────────────────────
+function maakHalloweenDecoraties() {
+  var items = [
+    { s: '🎃', l: '3%',  t: '10%', d: '0s'   },
+    { s: '👻', l: '87%', t: '14%', d: '0.8s' },
+    { s: '🕷️', l: '5%',  t: '72%', d: '1.5s' },
+    { s: '🦇', l: '84%', t: '68%', d: '0.3s' },
+    { s: '🕸️', l: '44%', t: '3%',  d: '1s'   },
+  ];
+  items.forEach(function(item) {
+    var el = document.createElement('div');
+    el.className = 'deco-item';
+    el.textContent = item.s;
+    el.style.cssText = 'left:' + item.l + ';top:' + item.t + ';animation-delay:' + item.d;
+    document.body.appendChild(el);
+  });
+}
+
+// ── DECORATIES STARTEN ────────────────────────────────
 function toonDecoraties() {
   var seizoen = getSezoen();
   if (!seizoen) return;
-
-  var configs = {
-    pasen: [
-      { symbool: '🐰', klasse: 'paas-haas', links: '3%',  boven: '10%', vertraging: '0s' },
-      { symbool: '🥚', klasse: 'paas-ei',   links: '88%', boven: '15%', vertraging: '1s' },
-      { symbool: '🌸', klasse: 'paas-ei',   links: '6%',  boven: '75%', vertraging: '2s' },
-      { symbool: '🐣', klasse: 'paas-haas', links: '85%', boven: '70%', vertraging: '0.5s' },
-      { symbool: '🥕', klasse: 'paas-ei',   links: '45%', boven: '3%',  vertraging: '1.5s' },
-    ],
-    halloween: [
-      { symbool: '🎃', klasse: 'halloween-item', links: '3%',  boven: '8%',  vertraging: '0s' },
-      { symbool: '👻', klasse: 'halloween-item', links: '87%', boven: '12%', vertraging: '0.8s' },
-      { symbool: '🕷️', klasse: 'halloween-item', links: '5%',  boven: '72%', vertraging: '1.5s' },
-      { symbool: '🦇', klasse: 'halloween-item', links: '84%', boven: '68%', vertraging: '0.3s' },
-      { symbool: '🕸️', klasse: 'halloween-item', links: '44%', boven: '2%',  vertraging: '1s' },
-    ],
-    kerst: [
-      { symbool: '🎄', klasse: 'kerst-item',      links: '2%',  boven: '8%',  vertraging: '0s' },
-      { symbool: '⭐', klasse: 'kerst-item kerst-ster', links: '88%', boven: '6%', vertraging: '0s' },
-      { symbool: '🎁', klasse: 'kerst-item',      links: '85%', boven: '70%', vertraging: '1s' },
-      { symbool: '❄️', klasse: 'kerst-item',      links: '5%',  boven: '74%', vertraging: '0.5s' },
-      { symbool: '🔔', klasse: 'kerst-item',      links: '44%', boven: '1%',  vertraging: '1.5s' },
-    ]
-  };
-
-  var items = configs[seizoen];
-  var wrap  = document.createElement('div');
-  wrap.className = 'deco';
-  wrap.style.cssText = 'top:0;left:0;width:100%;height:100%;';
-
-  items.forEach(function(item) {
-    var el = document.createElement('div');
-    el.className  = 'deco-item ' + item.klasse;
-    el.textContent = item.symbool;
-    el.style.cssText = 'left:' + item.links + ';top:' + item.boven + ';animation-delay:' + item.vertraging + ';';
-    wrap.appendChild(el);
-  });
-
-  document.body.appendChild(wrap);
+  if (seizoen === 'kerst') {
+    maakLichtslinger();
+    maakSneeuw();
+    maakKerstboom();
+  } else if (seizoen === 'pasen') {
+    maakPaasDecoraties();
+  } else if (seizoen === 'halloween') {
+    maakHalloweenDecoraties();
+  }
 }
 
 // ── STRIPE & STATE ────────────────────────────────────
@@ -266,12 +440,11 @@ document.getElementById('naam').addEventListener('input', function() {
   var naam  = this.value.trim();
   var delen = naam.split(' ');
   if (delen.length >= 2 && delen[0].length > 0 && delen[1].length > 0) {
-    var voornaam    = delen[0].toLowerCase();
-    var achternaam  = delen[delen.length - 1].toLowerCase();
-    var emailVeld   = document.getElementById('email');
-    // Alleen aanvullen als het veld leeg is of al een automatisch gegenereerd adres bevat
-    var huidigEmail = emailVeld.value;
-    if (!huidigEmail || huidigEmail.includes('@' + EMAIL_DOMEIN)) {
+    var voornaam   = delen[0].toLowerCase();
+    var achternaam = delen[delen.length - 1].toLowerCase();
+    var emailVeld  = document.getElementById('email');
+    var huidig     = emailVeld.value;
+    if (!huidig || huidig.includes('@' + EMAIL_DOMEIN)) {
       emailVeld.value = voornaam + '.' + achternaam + '@' + EMAIL_DOMEIN;
     }
   }
@@ -300,7 +473,7 @@ function renderMenu() {
     var el = document.createElement('div');
     el.className = 'menu-item';
     el.innerHTML =
-      '<div class="item-name">' + item.naam + '</div>' +
+      '<div class="item-name">'  + item.naam + '</div>' +
       '<div class="item-price">€ ' + (item.prijs + ADMIN_KOST).toFixed(2) + '</div>' +
       '<div class="check"></div>';
     el.addEventListener('click', function() { selectItem(i, el); });
@@ -319,8 +492,7 @@ function selectItem(i, el) {
 function updateTotaal() {
   var totaalEl = document.getElementById('totalAmount');
   if (geselecteerd === null) { totaalEl.textContent = '€ —'; return; }
-  var total = MENU[geselecteerd].prijs + ADMIN_KOST;
-  totaalEl.textContent = '€ ' + total.toFixed(2);
+  totaalEl.textContent = '€ ' + (MENU[geselecteerd].prijs + ADMIN_KOST).toFixed(2);
 }
 
 // ── VALIDATIE ─────────────────────────────────────────
@@ -329,19 +501,12 @@ function updateBtn() {
   var email = document.getElementById('email').value.trim();
   document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && geselecteerd !== null);
 }
-
 document.getElementById('email').addEventListener('input', updateBtn);
 
 // ── OPNIEUW BESTELLEN ─────────────────────────────────
 document.getElementById('btnOpnieuw').addEventListener('click', function() {
-  // Reset state
-  geselecteerd    = null;
-  betalingKlaar   = false;
-  paymentElement  = null;
-  clientSecret    = null;
-  elementsInstance = null;
-
-  // Reset UI
+  geselecteerd = null; betalingKlaar = false; paymentElement = null;
+  clientSecret = null; elementsInstance = null;
   document.getElementById('successScreen').classList.remove('show');
   document.getElementById('formBody').classList.remove('hidden');
   document.getElementById('payment-element').innerHTML = '';
@@ -350,16 +515,14 @@ document.getElementById('btnOpnieuw').addEventListener('click', function() {
   document.getElementById('btnPay').disabled = true;
   document.querySelectorAll('.menu-item').forEach(function(e) { e.classList.remove('selected'); });
   toonFout('');
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-
-  // Verwijder redirect params uit URL zodat redirect-check niet opnieuw triggert
   window.history.replaceState({}, document.title, window.location.pathname);
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 });
 
 // ── HULPFUNCTIES ──────────────────────────────────────
 function toonFout(msg) {
   var el = document.getElementById('errorBanner');
-  el.textContent   = msg;
+  el.textContent = msg;
   el.style.display = msg ? 'block' : 'none';
 }
 
@@ -382,8 +545,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
   var btn   = document.getElementById('btnPay');
 
   if (betalingKlaar) {
-    btn.classList.add('loading');
-    btn.disabled = true;
+    btn.classList.add('loading'); btn.disabled = true;
     stripe.confirmPayment({
       elements: elementsInstance,
       confirmParams: {
@@ -391,61 +553,39 @@ document.getElementById('btnPay').addEventListener('click', function() {
         payment_method_data: { billing_details: { name: naam, email: email } }
       },
       redirect: 'if_required'
-    })
-    .then(function(result) {
+    }).then(function(result) {
       if (result.error) {
         toonFout(result.error.message);
-        btn.classList.remove('loading');
-        btn.disabled = false;
+        btn.classList.remove('loading'); btn.disabled = false;
         return;
       }
       fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          actie:     'bevestig_bestelling',
-          naam:      naam,
-          email:     email,
-          gerecht:   item.naam,
-          prijs:     item.prijs,
-          paymentId: result.paymentIntent.id
+          actie: 'bevestig_bestelling', naam: naam, email: email,
+          gerecht: item.naam, prijs: item.prijs, paymentId: result.paymentIntent.id
         })
       })
       .then(function(r) { return r.json(); })
-      .then(function(d) {
-        console.log('Sheet response:', JSON.stringify(d));
-        toonSuccesScherm(naam, item.naam, total);
-      })
-      .catch(function(err) {
-        console.error('Sheet fout:', err);
-        toonSuccesScherm(naam, item.naam, total);
-      });
+      .then(function(d) { toonSuccesScherm(naam, item.naam, total); })
+      .catch(function() { toonSuccesScherm(naam, item.naam, total); });
     });
     return;
   }
 
-  btn.classList.add('loading');
-  btn.disabled = true;
-  toonFout('');
+  btn.classList.add('loading'); btn.disabled = true; toonFout('');
 
   sessionStorage.setItem('refter_bestelling', JSON.stringify({
-    naam:    naam,
-    email:   email,
-    gerecht: item.naam,
-    prijs:   item.prijs,
-    total:   total
+    naam: naam, email: email, gerecht: item.naam, prijs: item.prijs, total: total
   }));
 
   fetch(WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
-      actie:   'create_payment_intent',
-      naam:    naam,
-      email:   email,
-      gerecht: item.naam,
-      prijs:   item.prijs,
-      total:   total
+      actie: 'create_payment_intent', naam: naam, email: email,
+      gerecht: item.naam, prijs: item.prijs, total: total
     })
   })
   .then(function(resp) { return resp.json(); })
@@ -457,19 +597,16 @@ document.getElementById('btnPay').addEventListener('click', function() {
       appearance: { theme: 'stripe', variables: { colorPrimary: '#2D6A4F', fontFamily: 'DM Sans, sans-serif', borderRadius: '8px' } }
     });
     paymentElement = elementsInstance.create('payment', {
-      layout: 'tabs',
-      defaultValues: { billingDetails: { name: naam, email: email } }
+      layout: 'tabs', defaultValues: { billingDetails: { name: naam, email: email } }
     });
     paymentElement.mount('#payment-element');
     betalingKlaar = true;
-    btn.classList.remove('loading');
-    btn.disabled = false;
+    btn.classList.remove('loading'); btn.disabled = false;
     btn.querySelector('.btn-text').textContent = 'Bevestig betaling';
   })
   .catch(function(err) {
     toonFout(err.message || 'Er ging iets mis. Probeer opnieuw.');
-    btn.classList.remove('loading');
-    btn.disabled = false;
+    btn.classList.remove('loading'); btn.disabled = false;
   });
 });
 
