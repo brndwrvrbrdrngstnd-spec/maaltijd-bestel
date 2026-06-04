@@ -24,16 +24,8 @@
       --shadow:    0 2px 16px rgba(0,0,0,0.07);
     }
     html { background: var(--bg); }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      color: var(--ink);
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      padding: 2rem 1rem 4rem;
-    }
-    .header { text-align: center; margin-bottom: 2rem; animation: fadeUp 0.5s ease both; }
+    body { font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; }
+    .header { text-align: center; margin-bottom: 2rem; animation: fadeUp 0.5s ease both; position: relative; }
     .header h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 6vw, 2.8rem); color: var(--accent-dk); line-height: 1.1; margin-bottom: 0.4rem; }
     .header p { font-size: 0.95rem; color: var(--ink-muted); }
     .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 2rem; width: 100%; max-width: 480px; animation: fadeUp 0.5s 0.1s ease both; }
@@ -56,7 +48,6 @@
     .total-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem; }
     .total-label { font-size: 0.9rem; color: var(--ink-muted); }
     .total-amount { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--accent-dk); }
-    .total-breakdown { font-size: 0.78rem; color: var(--ink-muted); text-align: right; margin-top: -1rem; margin-bottom: 1.25rem; }
     #payment-element { margin-bottom: 1.25rem; }
     #card-errors { color: var(--warn); font-size: 0.8rem; margin-top: 0.4rem; min-height: 1.2em; }
     .btn-pay { width: 100%; padding: 0.9rem; background: var(--accent); color: #fff; border: none; border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.15s, transform 0.1s; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -66,6 +57,8 @@
     .spinner { width: 16px; height: 16px; border: 2px solid rgba(255,255,255,0.4); border-top-color: #fff; border-radius: 50%; animation: spin 0.7s linear infinite; display: none; }
     .btn-pay.loading .spinner { display: block; }
     .btn-pay.loading .btn-text { display: none; }
+    .btn-opnieuw { width: 100%; padding: 0.9rem; background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 10px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; transition: background 0.15s; margin-top: 0.75rem; }
+    .btn-opnieuw:hover { background: var(--accent-lt); }
     .notice { font-size: 0.75rem; color: var(--ink-muted); text-align: center; margin-top: 1rem; line-height: 1.5; }
     .success-screen { display: none; text-align: center; padding: 1rem 0; }
     .success-screen.show { display: block; }
@@ -80,6 +73,30 @@
     .success-detail .row span:last-child { font-weight: 500; }
     .error-banner { background: var(--warn-lt); border: 1px solid rgba(181,69,27,0.2); border-radius: 8px; padding: 0.75rem 1rem; font-size: 0.85rem; color: var(--warn); margin-bottom: 1rem; display: none; }
     .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 1.5rem; }
+
+    /* ── SEIZOENSDECORATIES ── */
+    .deco { position: fixed; pointer-events: none; z-index: 0; }
+    .deco-item { position: absolute; animation: decoFloat 6s ease-in-out infinite; }
+
+    /* Pasen */
+    .paas-ei { font-size: 2rem; }
+    .paas-haas { font-size: 2.5rem; }
+
+    /* Halloween */
+    .halloween-item { font-size: 2rem; opacity: 0.7; }
+
+    /* Kerst */
+    .kerst-item { font-size: 2rem; }
+    .kerst-ster { animation: twinkle 1.5s ease-in-out infinite alternate !important; }
+
+    @keyframes decoFloat {
+      0%, 100% { transform: translateY(0px) rotate(-5deg); }
+      50%       { transform: translateY(-12px) rotate(5deg); }
+    }
+    @keyframes twinkle {
+      from { opacity: 0.4; transform: scale(0.9); }
+      to   { opacity: 1;   transform: scale(1.1); }
+    }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
   </style>
@@ -101,11 +118,11 @@
     <h2>Bestelling bevestigd!</h2>
     <p>Je betaling is ontvangen. Ga je maaltijd ophalen op het afgesproken tijdstip.</p>
     <div class="success-detail" id="successDetail"></div>
+    <button class="btn-opnieuw" id="btnOpnieuw">Nog iets bestellen</button>
   </div>
 
   <div class="form-body" id="formBody">
     <div class="error-banner" id="errorBanner"></div>
-
     <p class="section-label">Jouw gegevens</p>
     <div class="field">
       <label for="naam">Naam</label>
@@ -113,49 +130,39 @@
     </div>
     <div class="field">
       <label for="email">E-mailadres</label>
-      <input type="email" id="email" placeholder="naam@bedrijf.be" autocomplete="email" />
+      <input type="email" id="email" placeholder="naam@zone1.be" autocomplete="email" />
     </div>
-
     <div class="divider"></div>
-
     <p class="section-label">Kies je maaltijd</p>
     <div class="menu-grid" id="menuGrid">
       <div class="menu-loading">Menu laden...</div>
     </div>
-
     <div class="divider"></div>
-
     <div class="total-row">
       <span class="total-label">Totaal te betalen</span>
       <span class="total-amount" id="totalAmount">€ —</span>
     </div>
-    <p class="total-breakdown" id="totalBreakdown"></p>
-
     <p class="section-label">Betaling</p>
     <div id="payment-element"></div>
     <div id="card-errors"></div>
-
     <button class="btn-pay" id="btnPay" disabled>
       <div class="spinner"></div>
       <span class="btn-text">Betalen &amp; Bestellen</span>
     </button>
-
-    <p class="notice">
-      Betalingen worden veilig verwerkt via Stripe.<br/>
-      Je bestelling wordt pas bevestigd na geslaagde betaling.
-    </p>
+    <p class="notice">Betalingen worden veilig verwerkt via Stripe.<br/>Je bestelling wordt pas bevestigd na geslaagde betaling.</p>
   </div>
 </div>
 
-
+<p class="version">Alpha test versie 0.55</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
-var STRIPE_KEY  = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
-var WEBHOOK_URL = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
-var ADMIN_KOST  = 0.30;
+var STRIPE_KEY   = 'pk_test_51TdGeEKkHhYoBtH5HummzldWutDb0P56GQI3PPvQVahQiQohRWs05CsAahEq6QmqYdvG2Y7ldD2FaVo0xaherwI800B8DCBhau';
+var WEBHOOK_URL  = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
+var ADMIN_KOST   = 0.30;
+var EMAIL_DOMEIN = 'zone1.be'; // ← pas aan indien nodig
 
-// ── REDIRECT AFHANDELING (Bancontact stuurt terug naar deze pagina) ──
+// ── REDIRECT AFHANDELING (Bancontact) ─────────────────
 var urlParams             = new URLSearchParams(window.location.search);
 var returnedPaymentIntent = urlParams.get('payment_intent');
 var returnedStatus        = urlParams.get('redirect_status');
@@ -165,7 +172,6 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
   if (opgeslagen) {
     var bestelling = JSON.parse(opgeslagen);
     sessionStorage.removeItem('refter_bestelling');
-
     fetch(WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'text/plain' },
@@ -181,28 +187,99 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       console.log('Sheet response na redirect:', JSON.stringify(d));
-      document.getElementById('formBody').classList.add('hidden');
-      var sc = document.getElementById('successScreen');
-      sc.classList.add('show');
-      document.getElementById('successDetail').innerHTML =
-        '<div class="row"><span>Naam</span><span>' + bestelling.naam + '</span></div>' +
-        '<div class="row"><span>Gerecht</span><span>' + bestelling.gerecht + '</span></div>' +
-        '<div class="row"><span>Betaald</span><span>€ ' + (bestelling.total / 100).toFixed(2) + '</span></div>';
+      toonSuccesScherm(bestelling.naam, bestelling.gerecht, bestelling.total);
     })
-    .catch(function(err) {
-      console.error('Fout na redirect:', err);
-    });
+    .catch(function(err) { console.error('Fout na redirect:', err); });
   }
 }
 
+// ── SEIZOENSDECORATIES ────────────────────────────────
+function getSezoen() {
+  var nu    = new Date();
+  var maand = nu.getMonth() + 1; // 1-12
+  var dag   = nu.getDate();
+
+  // Halloween: oktober
+  if (maand === 10) return 'halloween';
+
+  // Kerst: 1 dec – 26 dec
+  if (maand === 12 && dag <= 26) return 'kerst';
+
+  // Pasen: 15 maart – 30 april (benaderd)
+  if ((maand === 3 && dag >= 15) || (maand === 4 && dag <= 30)) return 'pasen';
+
+  return null;
+}
+
+function toonDecoraties() {
+  var seizoen = getSezoen();
+  if (!seizoen) return;
+
+  var configs = {
+    pasen: [
+      { symbool: '🐰', klasse: 'paas-haas', links: '3%',  boven: '10%', vertraging: '0s' },
+      { symbool: '🥚', klasse: 'paas-ei',   links: '88%', boven: '15%', vertraging: '1s' },
+      { symbool: '🌸', klasse: 'paas-ei',   links: '6%',  boven: '75%', vertraging: '2s' },
+      { symbool: '🐣', klasse: 'paas-haas', links: '85%', boven: '70%', vertraging: '0.5s' },
+      { symbool: '🥕', klasse: 'paas-ei',   links: '45%', boven: '3%',  vertraging: '1.5s' },
+    ],
+    halloween: [
+      { symbool: '🎃', klasse: 'halloween-item', links: '3%',  boven: '8%',  vertraging: '0s' },
+      { symbool: '👻', klasse: 'halloween-item', links: '87%', boven: '12%', vertraging: '0.8s' },
+      { symbool: '🕷️', klasse: 'halloween-item', links: '5%',  boven: '72%', vertraging: '1.5s' },
+      { symbool: '🦇', klasse: 'halloween-item', links: '84%', boven: '68%', vertraging: '0.3s' },
+      { symbool: '🕸️', klasse: 'halloween-item', links: '44%', boven: '2%',  vertraging: '1s' },
+    ],
+    kerst: [
+      { symbool: '🎄', klasse: 'kerst-item',      links: '2%',  boven: '8%',  vertraging: '0s' },
+      { symbool: '⭐', klasse: 'kerst-item kerst-ster', links: '88%', boven: '6%', vertraging: '0s' },
+      { symbool: '🎁', klasse: 'kerst-item',      links: '85%', boven: '70%', vertraging: '1s' },
+      { symbool: '❄️', klasse: 'kerst-item',      links: '5%',  boven: '74%', vertraging: '0.5s' },
+      { symbool: '🔔', klasse: 'kerst-item',      links: '44%', boven: '1%',  vertraging: '1.5s' },
+    ]
+  };
+
+  var items = configs[seizoen];
+  var wrap  = document.createElement('div');
+  wrap.className = 'deco';
+  wrap.style.cssText = 'top:0;left:0;width:100%;height:100%;';
+
+  items.forEach(function(item) {
+    var el = document.createElement('div');
+    el.className  = 'deco-item ' + item.klasse;
+    el.textContent = item.symbool;
+    el.style.cssText = 'left:' + item.links + ';top:' + item.boven + ';animation-delay:' + item.vertraging + ';';
+    wrap.appendChild(el);
+  });
+
+  document.body.appendChild(wrap);
+}
+
 // ── STRIPE & STATE ────────────────────────────────────
-var stripe          = Stripe(STRIPE_KEY);
-var MENU            = [];
-var geselecteerd    = null;
-var paymentElement  = null;
-var clientSecret    = null;
-var betalingKlaar   = false;
+var stripe           = Stripe(STRIPE_KEY);
+var MENU             = [];
+var geselecteerd     = null;
+var paymentElement   = null;
+var clientSecret     = null;
+var betalingKlaar    = false;
 var elementsInstance = null;
+
+// ── EMAIL AUTO-INVULLEN ───────────────────────────────
+document.getElementById('naam').addEventListener('input', function() {
+  var naam  = this.value.trim();
+  var delen = naam.split(' ');
+  if (delen.length >= 2 && delen[0].length > 0 && delen[1].length > 0) {
+    var voornaam    = delen[0].toLowerCase();
+    var achternaam  = delen[delen.length - 1].toLowerCase();
+    var emailVeld   = document.getElementById('email');
+    // Alleen aanvullen als het veld leeg is of al een automatisch gegenereerd adres bevat
+    var huidigEmail = emailVeld.value;
+    if (!huidigEmail || huidigEmail.includes('@' + EMAIL_DOMEIN)) {
+      emailVeld.value = voornaam + '.' + achternaam + '@' + EMAIL_DOMEIN;
+    }
+  }
+  updateBtn();
+});
 
 // ── MENU LADEN VANUIT SHEET ───────────────────────────
 function laadMenu() {
@@ -212,13 +289,9 @@ function laadMenu() {
     body: JSON.stringify({ actie: 'get_menu' })
   })
   .then(function(resp) { return resp.json(); })
-  .then(function(data) {
-    MENU = data;
-    renderMenu();
-  })
+  .then(function(data) { MENU = data; renderMenu(); })
   .catch(function(err) {
-    document.getElementById('menuGrid').innerHTML =
-      '<div class="menu-loading">Menu kon niet geladen worden. Herlaad de pagina.</div>';
+    document.getElementById('menuGrid').innerHTML = '<div class="menu-loading">Menu kon niet geladen worden. Herlaad de pagina.</div>';
     console.error('Menu laad fout:', err);
   });
 }
@@ -247,43 +320,58 @@ function selectItem(i, el) {
 }
 
 function updateTotaal() {
-  var totaalEl    = document.getElementById('totalAmount');
-  var breakdownEl = document.getElementById('totalBreakdown');
-  if (geselecteerd === null) {
-    totaalEl.textContent = '€ —';
-    breakdownEl.textContent = '';
-    return;
-  }
-  var item  = MENU[geselecteerd];
-  var total = item.prijs + ADMIN_KOST;
-  totaalEl.textContent  = '€ ' + total.toFixed(2);
-  breakdownEl.textContent = '€ ' + item.prijs.toFixed(2) + ' + € ' + ADMIN_KOST.toFixed(2) + ' admin';
+  var totaalEl = document.getElementById('totalAmount');
+  if (geselecteerd === null) { totaalEl.textContent = '€ —'; return; }
+  var total = MENU[geselecteerd].prijs + ADMIN_KOST;
+  totaalEl.textContent = '€ ' + total.toFixed(2);
 }
 
 // ── VALIDATIE ─────────────────────────────────────────
 function updateBtn() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
-  var ok    = naam.length > 1 && email.includes('@') && geselecteerd !== null;
-  document.getElementById('btnPay').disabled = !ok;
+  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && geselecteerd !== null);
 }
 
-document.getElementById('naam').addEventListener('input', updateBtn);
 document.getElementById('email').addEventListener('input', updateBtn);
+
+// ── OPNIEUW BESTELLEN ─────────────────────────────────
+document.getElementById('btnOpnieuw').addEventListener('click', function() {
+  // Reset state
+  geselecteerd    = null;
+  betalingKlaar   = false;
+  paymentElement  = null;
+  clientSecret    = null;
+  elementsInstance = null;
+
+  // Reset UI
+  document.getElementById('successScreen').classList.remove('show');
+  document.getElementById('formBody').classList.remove('hidden');
+  document.getElementById('payment-element').innerHTML = '';
+  document.getElementById('totalAmount').textContent = '€ —';
+  document.getElementById('btnPay').querySelector('.btn-text').textContent = 'Betalen & Bestellen';
+  document.getElementById('btnPay').disabled = true;
+  document.querySelectorAll('.menu-item').forEach(function(e) { e.classList.remove('selected'); });
+  toonFout('');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // Verwijder redirect params uit URL zodat redirect-check niet opnieuw triggert
+  window.history.replaceState({}, document.title, window.location.pathname);
+});
 
 // ── HULPFUNCTIES ──────────────────────────────────────
 function toonFout(msg) {
   var el = document.getElementById('errorBanner');
-  el.textContent  = msg;
+  el.textContent   = msg;
   el.style.display = msg ? 'block' : 'none';
 }
 
-function toonSucces(naam, item, totalCent) {
+function toonSuccesScherm(naam, gerecht, totalCent) {
   document.getElementById('formBody').classList.add('hidden');
   document.getElementById('successScreen').classList.add('show');
   document.getElementById('successDetail').innerHTML =
-    '<div class="row"><span>Naam</span><span>'    + naam      + '</span></div>' +
-    '<div class="row"><span>Gerecht</span><span>' + item.naam + '</span></div>' +
+    '<div class="row"><span>Naam</span><span>'    + naam    + '</span></div>' +
+    '<div class="row"><span>Gerecht</span><span>' + gerecht + '</span></div>' +
     '<div class="row"><span>Betaald</span><span>€ ' + (totalCent / 100).toFixed(2) + '</span></div>';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
@@ -296,11 +384,9 @@ document.getElementById('btnPay').addEventListener('click', function() {
   var total = Math.round((item.prijs + ADMIN_KOST) * 100);
   var btn   = document.getElementById('btnPay');
 
-  // TWEEDE KLIK: bevestig betaling
   if (betalingKlaar) {
     btn.classList.add('loading');
     btn.disabled = true;
-
     stripe.confirmPayment({
       elements: elementsInstance,
       confirmParams: {
@@ -316,8 +402,6 @@ document.getElementById('btnPay').addEventListener('click', function() {
         btn.disabled = false;
         return;
       }
-
-      // Geen redirect — direct bevestigen
       fetch(WEBHOOK_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
@@ -333,23 +417,20 @@ document.getElementById('btnPay').addEventListener('click', function() {
       .then(function(r) { return r.json(); })
       .then(function(d) {
         console.log('Sheet response:', JSON.stringify(d));
-        toonSucces(naam, item, total);
+        toonSuccesScherm(naam, item.naam, total);
       })
       .catch(function(err) {
         console.error('Sheet fout:', err);
-        toonSucces(naam, item, total);
+        toonSuccesScherm(naam, item.naam, total);
       });
     });
-
     return;
   }
 
-  // EERSTE KLIK: maak PaymentIntent en laad betaalformulier
   btn.classList.add('loading');
   btn.disabled = true;
   toonFout('');
 
-  // Sla bestelling op voor het geval Bancontact redirect plaatsvindt
   sessionStorage.setItem('refter_bestelling', JSON.stringify({
     naam:    naam,
     email:   email,
@@ -374,22 +455,15 @@ document.getElementById('btnPay').addEventListener('click', function() {
   .then(function(data) {
     if (!data.clientSecret) throw new Error(data.error || 'Geen client secret ontvangen.');
     clientSecret = data.clientSecret;
-
     elementsInstance = stripe.elements({
       clientSecret: clientSecret,
-      appearance: {
-        theme: 'stripe',
-        variables: { colorPrimary: '#2D6A4F', fontFamily: 'DM Sans, sans-serif', borderRadius: '8px' }
-      }
+      appearance: { theme: 'stripe', variables: { colorPrimary: '#2D6A4F', fontFamily: 'DM Sans, sans-serif', borderRadius: '8px' } }
     });
-
     paymentElement = elementsInstance.create('payment', {
       layout: 'tabs',
       defaultValues: { billingDetails: { name: naam, email: email } }
     });
-
     paymentElement.mount('#payment-element');
-
     betalingKlaar = true;
     btn.classList.remove('loading');
     btn.disabled = false;
@@ -404,7 +478,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
 
 // ── START ─────────────────────────────────────────────
 laadMenu();
+toonDecoraties();
 </script>
-  <p style="text-align:center; font-size:0.7rem; color:#aaa; margin-top:1.5rem;">v0.54</p>
 </body>
 </html>
