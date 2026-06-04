@@ -153,7 +153,7 @@
   </div>
 </div>
 
-<p class="version">Alpha test versie 0.56</p>
+<p class="version">Alpha test versie 0.57</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -195,19 +195,16 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
 
 // ── SEIZOENSDECORATIES ────────────────────────────────
 function getSezoen() {
+  // Developer preview: voeg ?seizoen=pasen / kerst / halloween toe aan de URL
+  var preview = new URLSearchParams(window.location.search).get('seizoen');
+  if (preview) return preview;
+
   var nu    = new Date();
-  var maand = nu.getMonth() + 1; // 1-12
+  var maand = nu.getMonth() + 1;
   var dag   = nu.getDate();
-
-  // Halloween: oktober
   if (maand === 10) return 'halloween';
-
-  // Kerst: 1 dec – 26 dec
   if (maand === 12 && dag <= 26) return 'kerst';
-
-  // Pasen: 15 maart – 30 april (benaderd)
   if ((maand === 3 && dag >= 15) || (maand === 4 && dag <= 30)) return 'pasen';
-
   return null;
 }
 
