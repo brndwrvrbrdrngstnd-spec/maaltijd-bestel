@@ -359,13 +359,23 @@ document.getElementById('btnPay').addEventListener('click', function() {
         payment_method_data: { billing_details: { name: naam, email: email } }
       },
       redirect: 'if_required'
-    }).then(function(result) {
+   }).then(function(result) {
+      console.log('Stripe result:', JSON.stringify(result));
+
       if (result.error) {
         toonFout(result.error.message);
         btn.classList.remove('loading');
         btn.disabled = false;
         return;
       }
+
+      if (!result.paymentIntent) {
+        console.error('Geen paymentIntent in result!');
+        toonFout('Betaling gelukt maar bestelling kon niet worden opgeslagen. Contacteer de beheerder.');
+        return;
+      }
+
+      console.log('PaymentIntent ID:', result.paymentIntent.id);
 
       fetch(WEBHOOK_URL, {
         method: 'POST',
