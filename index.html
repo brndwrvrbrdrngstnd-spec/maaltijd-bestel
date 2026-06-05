@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<p class="version">v1.01 - Louis Biebuyck &copy</p>
+<p class="version">v1.02 - Louis Biebuyck &copy</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -619,7 +619,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
           actie: 'bevestig_bestelling', naam: naam, email: email,
-          gerecht: item.naam, prijs: item.prijs, paymentId: result.paymentIntent.id
+          gerecht: item.naam, prijs: item.prijs, paymentId: result.paymentIntent.id,
           brood: getBroodkeuze
         })
       })
@@ -633,7 +633,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
   btn.classList.add('loading'); btn.disabled = true; toonFout('');
 
   sessionStorage.setItem('refter_bestelling', JSON.stringify({
-    naam: naam, email: email, gerecht: item.naam, prijs: item.prijs, total: total
+    naam: naam, email: email, gerecht: item.naam, prijs: item.prijs, total: total,
     brood: getBroodkeuze
   }));
 
@@ -642,7 +642,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
     headers: { 'Content-Type': 'text/plain' },
     body: JSON.stringify({
       actie: 'create_payment_intent', naam: naam, email: email,
-      gerecht: item.naam, prijs: item.prijs, total: total
+      gerecht: item.naam, prijs: item.prijs, total: total,
       brood: getBroodkeuze
     })
   })
