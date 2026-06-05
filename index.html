@@ -221,7 +221,7 @@
   </div>
 </div>
 
-<p class="version">v1.00 - Louis Biebuyck &copy</p>
+<p class="version">v1.01 - Louis Biebuyck &copy</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -486,7 +486,61 @@ function selectItem(i, el) {
   el.classList.add('selected');
   geselecteerd = i;
   updateTotaal();
+  toonBroodkeuze();
   updateBtn();
+}
+
+function toonBroodkeuze() {
+  var bestaand = document.getElementById('broodkeuzeVeld');
+  if (bestaand) bestaand.remove();
+  if (geselecteerd === null) return;
+
+  var item = MENU[geselecteerd];
+  if (!item.broodkeuze) return;
+
+  var veld = document.createElement('div');
+  veld.id = 'broodkeuzeVeld';
+  veld.style.cssText = 'margin-bottom:1.25rem;';
+  veld.innerHTML =
+    '<p class="section-label" style="margin-bottom:0.75rem;">Broodkeuze</p>' +
+    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
+      '<div class="brood-optie" data-keuze="wit" onclick="kiesBrood(this)">' +
+        '<div style="font-size:1.3rem;margin-bottom:4px;">🍞</div>' +
+        '<div style="font-size:0.875rem;font-weight:500;">Wit</div>' +
+      '</div>' +
+      '<div class="brood-optie" data-keuze="bruin" onclick="kiesBrood(this)">' +
+        '<div style="font-size:1.3rem;margin-bottom:4px;">🫓</div>' +
+        '<div style="font-size:0.875rem;font-weight:500;">Bruin</div>' +
+      '</div>' +
+    '</div>';
+
+  // Stijl voor brood opties
+  var style = document.createElement('style');
+  style.textContent =
+    '.brood-optie{border:1.5px solid var(--border);border-radius:10px;padding:0.8rem;' +
+    'cursor:pointer;text-align:center;transition:border-color 0.15s,background 0.15s;}' +
+    '.brood-optie:hover{border-color:var(--accent);background:#f9fdf9;}' +
+    '.brood-optie.selected{border-color:var(--accent);background:var(--accent-lt);}';
+  if (!document.getElementById('broodStijl')) {
+    style.id = 'broodStijl';
+    document.head.appendChild(style);
+  }
+
+  // Voeg in na het menu grid
+  var menuGrid = document.getElementById('menuGrid');
+  menuGrid.parentNode.insertBefore(veld, menuGrid.nextSibling);
+  updateBtn();
+}
+
+function kiesBrood(el) {
+  document.querySelectorAll('.brood-optie').forEach(function(e) { e.classList.remove('selected'); });
+  el.classList.add('selected');
+  updateBtn();
+}
+
+function getBroodkeuze() {
+  var geselecteerdeBrood = document.querySelector('.brood-optie.selected');
+  return geselecteerdeBrood ? geselecteerdeBrood.dataset.keuze : null;
 }
 
 function updateTotaal() {
@@ -499,7 +553,8 @@ function updateTotaal() {
 function updateBtn() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
-  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && geselecteerd !== null);
+  var broodOk = geselecteerd === null || !MENU[geselecteerd].broodkeuze || getBroodkeuze() !== null;
+  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && geselecteerd !== null && broodOk);
 }
 document.getElementById('email').addEventListener('input', updateBtn);
 
@@ -565,6 +620,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
         body: JSON.stringify({
           actie: 'bevestig_bestelling', naam: naam, email: email,
           gerecht: item.naam, prijs: item.prijs, paymentId: result.paymentIntent.id
+          brood: getBroodkeuze
         })
       })
       .then(function(r) { return r.json(); })
@@ -578,6 +634,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
 
   sessionStorage.setItem('refter_bestelling', JSON.stringify({
     naam: naam, email: email, gerecht: item.naam, prijs: item.prijs, total: total
+    brood: getBroodkeuze
   }));
 
   fetch(WEBHOOK_URL, {
@@ -586,6 +643,7 @@ document.getElementById('btnPay').addEventListener('click', function() {
     body: JSON.stringify({
       actie: 'create_payment_intent', naam: naam, email: email,
       gerecht: item.naam, prijs: item.prijs, total: total
+      brood: getBroodkeuze
     })
   })
   .then(function(resp) { return resp.json(); })
