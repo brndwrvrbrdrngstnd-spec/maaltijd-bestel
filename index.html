@@ -166,6 +166,7 @@
     @keyframes spinDangle { 0%,100% { transform: translateX(0); } 50% { transform: translateX(14px); } }
 @keyframes batVlucht  { 0% { left: -80px; } 100% { left: 110vw; } }
 @keyframes batFladder { from { transform: scaleY(1); } to { transform: scaleY(0.45); } }
+    @keyframes decoFloat { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     .kok-knop-wrap { margin-top: 2rem; width: 100%; max-width: 480px; text-align: center; }
 .btn-kok { background: transparent; border: 1px solid var(--border); color: var(--ink-muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
 .btn-kok:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
@@ -453,21 +454,90 @@ function maakKerstboom() {
 }
 
 // ── PAAS DECORATIES ───────────────────────────────────
-function maakPaasDecoraties() {
-  var items = [
-    { s: '🐰', l: '3%',  t: '12%', d: '0s'   },
-    { s: '🥚', l: '88%', t: '16%', d: '1s'   },
-    { s: '🌸', l: '6%',  t: '75%', d: '2s'   },
-    { s: '🐣', l: '85%', t: '70%', d: '0.5s' },
-    { s: '🥕', l: '45%', t: '4%',  d: '1.5s' },
-  ];
-  items.forEach(function(item) {
+
+  function maakPaasDecoraties() {
+  // Subtiele achtergrond decoraties
+  [
+    { s:'🌸', l:'4%',  t:'20%', d:'0s',   fs:'1.6rem' },
+    { s:'🌷', l:'88%', t:'18%', d:'1s',   fs:'1.5rem' },
+    { s:'🥚', l:'6%',  t:'72%', d:'2s',   fs:'1.4rem' },
+    { s:'🌸', l:'85%', t:'68%', d:'0.5s', fs:'1.3rem' },
+    { s:'🥕', l:'46%', t:'3%',  d:'1.5s', fs:'1.4rem' },
+    { s:'🐣', l:'90%', t:'42%', d:'0.8s', fs:'1.5rem' },
+  ].forEach(function(item) {
     var el = document.createElement('div');
-    el.className = 'deco-item';
+    el.style.cssText = 'position:fixed;left:' + item.l + ';top:' + item.t +
+      ';font-size:' + item.fs + ';pointer-events:none;z-index:98;' +
+      'animation:decoFloat 5s ease-in-out ' + item.d + ' infinite;';
     el.textContent = item.s;
-    el.style.cssText = 'left:' + item.l + ';top:' + item.t + ';animation-delay:' + item.d;
     document.body.appendChild(el);
   });
+
+  // Paashaas SVG
+  var haasWrap = document.createElement('div');
+  haasWrap.id = 'paasHaas';
+  haasWrap.style.cssText = 'position:fixed;bottom:24px;left:0;pointer-events:none;z-index:99;';
+  haasWrap.innerHTML =
+    '<svg width="65" height="82" viewBox="0 0 65 82" xmlns="http://www.w3.org/2000/svg">' +
+    // Oren
+    '<ellipse cx="23" cy="13" rx="5.5" ry="13" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    '<ellipse cx="23" cy="13" rx="3" ry="10" fill="#f8c8d4"/>' +
+    '<ellipse cx="41" cy="13" rx="5.5" ry="13" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    '<ellipse cx="41" cy="13" rx="3" ry="10" fill="#f8c8d4"/>' +
+    // Lichaam
+    '<ellipse cx="32" cy="60" rx="22" ry="19" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    // Hoofd
+    '<circle cx="32" cy="35" r="16" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    // Staart
+    '<circle cx="52" cy="62" r="7" fill="#f5f3f0" stroke="#d9d5ce" stroke-width="1"/>' +
+    // Ogen
+    '<circle cx="27" cy="33" r="2.5" fill="#2d2926"/>' +
+    '<circle cx="37" cy="33" r="2.5" fill="#2d2926"/>' +
+    '<circle cx="27.8" cy="32.2" r="0.8" fill="#fff"/>' +
+    '<circle cx="37.8" cy="32.2" r="0.8" fill="#fff"/>' +
+    // Neus & mond
+    '<ellipse cx="32" cy="39" rx="2.5" ry="2" fill="#f8c8d4"/>' +
+    '<path d="M 29,41 Q 32,44 35,41" stroke="#d9d5ce" stroke-width="0.8" fill="none"/>' +
+    // Pootjes
+    '<ellipse cx="20" cy="77" rx="11" ry="5" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    '<ellipse cx="44" cy="77" rx="11" ry="5" fill="#f0ede8" stroke="#d9d5ce" stroke-width="1"/>' +
+    '</svg>';
+  document.body.appendChild(haasWrap);
+
+  // Horizontale beweging + hoppen
+  var x = 0;
+  var richting = 1;
+  var hopTeller = 0;
+  var hopHoogte = 0;
+  var hopSnelheid = 0;
+  var isHopping = false;
+
+  function beweeg() {
+    x += richting * 1.8;
+    var maxX = window.innerWidth - 80;
+    if (x > maxX) { x = maxX; richting = -1; }
+    if (x < 0)    { x = 0;    richting =  1; }
+
+    hopTeller++;
+    if (hopTeller % 45 === 0 && !isHopping) {
+      isHopping = true;
+      hopHoogte = 0;
+      hopSnelheid = -8;
+    }
+
+    if (isHopping) {
+      hopSnelheid += 0.6;
+      hopHoogte += hopSnelheid;
+      if (hopHoogte >= 0) { hopHoogte = 0; hopSnelheid = 0; isHopping = false; }
+    }
+
+    haasWrap.style.left      = x + 'px';
+    haasWrap.style.bottom    = (24 - hopHoogte) + 'px';
+    haasWrap.style.transform = richting < 0 ? 'scaleX(-1)' : 'scaleX(1)';
+
+    requestAnimationFrame(beweeg);
+  }
+  requestAnimationFrame(beweeg);
 }
 
 // ── HALLOWEEN DECORATIES ──────────────────────────────
