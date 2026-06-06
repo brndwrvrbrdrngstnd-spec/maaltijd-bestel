@@ -163,6 +163,36 @@
     .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 1.5rem; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
+    .kok-knop-wrap { margin-top: 2rem; width: 100%; max-width: 480px; text-align: center; }
+.btn-kok { background: transparent; border: 1px solid var(--border); color: var(--ink-muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
+.btn-kok:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 200; display: none; align-items: center; justify-content: center; padding: 1rem; }
+.modal-overlay.open { display: flex; }
+.modal { background: var(--surface); border-radius: var(--radius); box-shadow: 0 8px 40px rgba(0,0,0,0.18); padding: 2rem; width: 100%; max-width: 400px; animation: fadeUp 0.2s ease; }
+.modal h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--accent-dk); margin-bottom: 0.4rem; }
+.modal-sub { font-size: 0.875rem; color: var(--ink-muted); margin-bottom: 1.5rem; }
+.pin-dots { display: flex; justify-content: center; gap: 12px; margin-bottom: 1.5rem; }
+.pin-dot { width: 14px; height: 14px; border-radius: 50%; border: 2px solid var(--border); transition: all 0.15s; }
+.pin-dot.gevuld { background: var(--accent); border-color: var(--accent); }
+.pin-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 1rem; }
+.pin-btn { padding: 1rem; border: 1px solid var(--border); border-radius: 10px; font-family: 'DM Serif Display', serif; font-size: 1.3rem; cursor: pointer; background: var(--bg); transition: all 0.15s; }
+.pin-btn:hover { background: var(--accent-lt); border-color: var(--accent); }
+.pin-btn.del { font-family: 'DM Sans', sans-serif; font-size: 1rem; color: var(--ink-muted); }
+.pin-fout { color: var(--warn); font-size: 0.8rem; text-align: center; min-height: 1.2em; margin-bottom: 0.5rem; }
+.btn-modal-sluiten { width: 100%; padding: 0.7rem; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.875rem; color: var(--ink-muted); cursor: pointer; }
+.btn-modal-sluiten:hover { background: var(--bg); }
+.kok-datum { font-size: 0.8rem; color: var(--ink-muted); margin-bottom: 1.25rem; }
+.kok-totaal { display: flex; justify-content: space-between; align-items: center; background: var(--accent-lt); border-radius: 8px; padding: 0.75rem 1rem; margin-bottom: 1.25rem; }
+.kok-totaal-label { font-size: 0.875rem; color: var(--accent-dk); }
+.kok-totaal-getal { font-family: 'DM Serif Display', serif; font-size: 1.8rem; color: var(--accent-dk); }
+.kok-groep { margin-bottom: 1rem; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+.kok-groep-header { display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 1rem; background: var(--bg); }
+.kok-groep-naam { font-size: 0.9rem; font-weight: 500; }
+.kok-groep-aantal { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: var(--accent); }
+.kok-namen { padding: 0.5rem 1rem 0.75rem; font-size: 0.8rem; color: var(--ink-muted); line-height: 1.8; }
+.kok-laden { text-align: center; padding: 2rem; color: var(--ink-muted); font-size: 0.875rem; }
+.btn-kok-refresh { display: flex; align-items: center; gap: 6px; margin: 0 auto 1.25rem; padding: 7px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: var(--ink-muted); cursor: pointer; }
+.btn-kok-refresh:hover { border-color: var(--accent); color: var(--accent); }
   </style>
 </head>
 <body>
@@ -221,7 +251,51 @@
   </div>
 </div>
 
-<p class="version">v1.03 - Louis Biebuyck &copy</p>
+<div class="kok-knop-wrap">
+  <button class="btn-kok" id="btnKok">👨‍🍳 Ik ben de kok</button>
+</div>
+
+<!-- PIN MODAL -->
+<div class="modal-overlay" id="pinModal">
+  <div class="modal">
+    <h3>👨‍🍳 Kok toegang</h3>
+    <p class="modal-sub">Voer de PIN in om de bestellingen te bekijken.</p>
+    <div class="pin-dots" id="pinDots">
+      <div class="pin-dot" id="dot0"></div>
+      <div class="pin-dot" id="dot1"></div>
+      <div class="pin-dot" id="dot2"></div>
+      <div class="pin-dot" id="dot3"></div>
+    </div>
+    <div class="pin-fout" id="pinFout"></div>
+    <div class="pin-grid">
+      <button class="pin-btn" onclick="pinInvoer('1')">1</button>
+      <button class="pin-btn" onclick="pinInvoer('2')">2</button>
+      <button class="pin-btn" onclick="pinInvoer('3')">3</button>
+      <button class="pin-btn" onclick="pinInvoer('4')">4</button>
+      <button class="pin-btn" onclick="pinInvoer('5')">5</button>
+      <button class="pin-btn" onclick="pinInvoer('6')">6</button>
+      <button class="pin-btn" onclick="pinInvoer('7')">7</button>
+      <button class="pin-btn" onclick="pinInvoer('8')">8</button>
+      <button class="pin-btn" onclick="pinInvoer('9')">9</button>
+      <button class="pin-btn" onclick="pinInvoer('0')" style="grid-column:2">0</button>
+      <button class="pin-btn del" onclick="pinVerwijder()">⌫</button>
+    </div>
+    <button class="btn-modal-sluiten" onclick="sluitModal('pinModal')">Annuleren</button>
+  </div>
+</div>
+
+<!-- KOK OVERZICHT MODAL -->
+<div class="modal-overlay" id="kokModal">
+  <div class="modal" style="max-height:90vh;overflow-y:auto;">
+    <h3>👨‍🍳 Bestellingen vandaag</h3>
+    <p class="kok-datum" id="kokDatum"></p>
+    <button class="btn-kok-refresh" onclick="laadKokData()">↻ Vernieuwen</button>
+    <div id="kokInhoud"><div class="kok-laden">Bestellingen laden...</div></div>
+    <button class="btn-modal-sluiten" onclick="sluitModal('kokModal')" style="margin-top:1rem;">Sluiten</button>
+  </div>
+</div>
+  
+<p class="version">v1.04 - Louis Biebuyck &copy</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -451,6 +525,83 @@ document.getElementById('naam').addEventListener('input', function() {
   updateBtn();
 });
 
+var KOK_PIN = '8020';
+var pinBuffer = '';
+
+document.getElementById('btnKok').addEventListener('click', function() {
+  pinBuffer = ''; updatePinDots();
+  document.getElementById('pinFout').textContent = '';
+  document.getElementById('pinModal').classList.add('open');
+});
+
+function pinInvoer(cijfer) {
+  if (pinBuffer.length >= 4) return;
+  pinBuffer += cijfer; updatePinDots();
+  if (pinBuffer.length === 4) {
+    setTimeout(function() {
+      if (pinBuffer === KOK_PIN) {
+        sluitModal('pinModal'); openKokModal();
+      } else {
+        document.getElementById('pinFout').textContent = 'Verkeerde PIN, probeer opnieuw.';
+        pinBuffer = ''; updatePinDots();
+      }
+    }, 200);
+  }
+}
+
+function pinVerwijder() {
+  pinBuffer = pinBuffer.slice(0, -1); updatePinDots();
+  document.getElementById('pinFout').textContent = '';
+}
+
+function updatePinDots() {
+  for (var i = 0; i < 4; i++) {
+    document.getElementById('dot' + i).classList.toggle('gevuld', i < pinBuffer.length);
+  }
+}
+
+function openKokModal() {
+  var nu = new Date();
+  document.getElementById('kokDatum').textContent = nu.toLocaleDateString('nl-BE', { weekday:'long', day:'numeric', month:'long', year:'numeric' });
+  document.getElementById('kokModal').classList.add('open');
+  laadKokData();
+}
+
+function laadKokData() {
+  document.getElementById('kokInhoud').innerHTML = '<div class="kok-laden">Bestellingen laden...</div>';
+  fetch(WEBHOOK_URL, {
+    method: 'POST', headers: {'Content-Type':'text/plain'},
+    body: JSON.stringify({ actie: 'get_bestellingen_vandaag' })
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(data) { renderKokData(data); })
+  .catch(function(err) {
+    document.getElementById('kokInhoud').innerHTML = '<div class="kok-laden">Kon bestellingen niet laden.</div>';
+  });
+}
+
+function renderKokData(bestellingen) {
+  if (!bestellingen || bestellingen.length === 0) {
+    document.getElementById('kokInhoud').innerHTML = '<div class="kok-laden">Nog geen bestellingen vandaag.</div>';
+    return;
+  }
+  var groepen = {};
+  bestellingen.forEach(function(b) {
+    var sleutel = b.gerecht + (b.brood && b.brood !== '-' ? ' (' + b.brood + ')' : '');
+    if (!groepen[sleutel]) groepen[sleutel] = [];
+    groepen[sleutel].push(b.naam);
+  });
+  var html = '<div class="kok-totaal"><span class="kok-totaal-label">Totaal maaltijden vandaag</span><span class="kok-totaal-getal">' + bestellingen.length + '</span></div>';
+  Object.keys(groepen).forEach(function(sleutel) {
+    html += '<div class="kok-groep"><div class="kok-groep-header"><span class="kok-groep-naam">' + sleutel + '</span><span class="kok-groep-aantal">' + groepen[sleutel].length + 'x</span></div><div class="kok-namen">' + groepen[sleutel].join(' · ') + '</div></div>';
+  });
+  document.getElementById('kokInhoud').innerHTML = html;
+}
+
+function sluitModal(id) { document.getElementById(id).classList.remove('open'); }
+document.getElementById('pinModal').addEventListener('click', function(e) { if (e.target === this) sluitModal('pinModal'); });
+document.getElementById('kokModal').addEventListener('click', function(e) { if (e.target === this) sluitModal('kokModal'); });
+  
 // ── MENU LADEN VANUIT SHEET ───────────────────────────
 function laadMenu() {
   fetch(WEBHOOK_URL, {
