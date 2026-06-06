@@ -163,6 +163,9 @@
     .version { text-align: center; font-size: 0.7rem; color: #aaa; margin-top: 1.5rem; }
     @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
     @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes spinDangle { 0%,100% { transform: translateX(0); } 50% { transform: translateX(14px); } }
+@keyframes batVlucht  { 0% { left: -80px; } 100% { left: 110vw; } }
+@keyframes batFladder { from { transform: scaleY(1); } to { transform: scaleY(0.45); } }
     .kok-knop-wrap { margin-top: 2rem; width: 100%; max-width: 480px; text-align: center; }
 .btn-kok { background: transparent; border: 1px solid var(--border); color: var(--ink-muted); font-family: 'DM Sans', sans-serif; font-size: 0.8rem; padding: 8px 18px; border-radius: 20px; cursor: pointer; transition: all 0.15s; }
 .btn-kok:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-lt); }
@@ -468,20 +471,72 @@ function maakPaasDecoraties() {
 }
 
 // ── HALLOWEEN DECORATIES ──────────────────────────────
-function maakHalloweenDecoraties() {
-  var items = [
-    { s: '🎃', l: '3%',  t: '10%', d: '0s'   },
-    { s: '👻', l: '87%', t: '14%', d: '0.8s' },
-    { s: '🕷️', l: '5%',  t: '72%', d: '1.5s' },
-    { s: '🦇', l: '84%', t: '68%', d: '0.3s' },
-    { s: '🕸️', l: '44%', t: '3%',  d: '1s'   },
+
+  function maakHalloweenDecoraties() {
+  // Spinnenweb links bovenaan
+  var webLinks = document.createElement('div');
+  webLinks.style.cssText = 'position:fixed;top:0;left:0;pointer-events:none;z-index:98;opacity:0.55;';
+  webLinks.innerHTML = '<svg width="220" height="220" viewBox="0 0 220 220" xmlns="http://www.w3.org/2000/svg">' +
+    '<line x1="0" y1="0" x2="220" y2="110" stroke="#888" stroke-width="0.8"/>' +
+    '<line x1="0" y1="0" x2="180" y2="220" stroke="#888" stroke-width="0.8"/>' +
+    '<line x1="0" y1="0" x2="90" y2="220" stroke="#888" stroke-width="0.8"/>' +
+    '<line x1="0" y1="0" x2="220" y2="190" stroke="#888" stroke-width="0.8"/>' +
+    '<line x1="0" y1="0" x2="220" y2="50" stroke="#888" stroke-width="0.8"/>' +
+    '<line x1="0" y1="0" x2="40" y2="220" stroke="#888" stroke-width="0.8"/>' +
+    '<path d="M 55,0 Q 35,35 0,55" stroke="#888" stroke-width="0.7" fill="none"/>' +
+    '<path d="M 110,0 Q 70,70 0,110" stroke="#888" stroke-width="0.7" fill="none"/>' +
+    '<path d="M 165,0 Q 105,105 0,165" stroke="#888" stroke-width="0.7" fill="none"/>' +
+    '<path d="M 220,0 Q 140,140 0,220" stroke="#888" stroke-width="0.7" fill="none"/>' +
+    '</svg>';
+  document.body.appendChild(webLinks);
+
+  // Spinnenweb rechts bovenaan (gespiegeld)
+  var webRechts = document.createElement('div');
+  webRechts.style.cssText = 'position:fixed;top:0;right:0;pointer-events:none;z-index:98;opacity:0.45;transform:scaleX(-1);';
+  webRechts.innerHTML = webLinks.innerHTML;
+  document.body.appendChild(webRechts);
+
+  // Spin die bengelt aan links web
+  var spin = document.createElement('div');
+  spin.style.cssText = 'position:fixed;top:195px;left:60px;pointer-events:none;z-index:99;animation:spinDangle 3s ease-in-out infinite;';
+  spin.innerHTML = '<svg width="26" height="42" viewBox="0 0 26 42">' +
+    '<line x1="13" y1="0" x2="13" y2="18" stroke="#888" stroke-width="1"/>' +
+    '<ellipse cx="13" cy="26" rx="10" ry="8" fill="#1a0a2e"/>' +
+    '<line x1="3" y1="24" x2="-5" y2="17" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<line x1="3" y1="27" x2="-6" y2="27" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<line x1="3" y1="30" x2="-5" y2="36" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<line x1="23" y1="24" x2="31" y2="17" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<line x1="23" y1="27" x2="32" y2="27" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<line x1="23" y1="30" x2="31" y2="36" stroke="#1a0a2e" stroke-width="1.5"/>' +
+    '<circle cx="10" cy="25" r="2" fill="#ff4444"/><circle cx="16" cy="25" r="2" fill="#ff4444"/>' +
+    '</svg>';
+  document.body.appendChild(spin);
+
+  // Vleermuizen
+  var batSVG = '<svg width="44" height="28" viewBox="0 0 44 28" xmlns="http://www.w3.org/2000/svg">' +
+    '<ellipse cx="22" cy="18" rx="6" ry="5" fill="#2d1b4e"/>' +
+    '<path d="M16,18 Q8,6 0,11 Q6,21 16,21" fill="#2d1b4e"/>' +
+    '<path d="M28,18 Q36,6 44,11 Q38,21 28,21" fill="#2d1b4e"/>' +
+    '<polygon points="19,13 17,6 21,12" fill="#2d1b4e"/>' +
+    '<polygon points="25,13 27,6 23,12" fill="#2d1b4e"/>' +
+    '<circle cx="19" cy="17" r="2" fill="#ff4444"/>' +
+    '<circle cx="25" cy="17" r="2" fill="#ff4444"/>' +
+    '</svg>';
+
+  var batConfigs = [
+    { top:'10%', duur:14, delay:'0s',   schaal:1   },
+    { top:'22%', duur:10, delay:'-4s',  schaal:0.8 },
+    { top:'38%', duur:18, delay:'-9s',  schaal:1.2 },
+    { top:'6%',  duur:12, delay:'-2s',  schaal:0.7 },
+    { top:'52%', duur:16, delay:'-6s',  schaal:1   },
   ];
-  items.forEach(function(item) {
-    var el = document.createElement('div');
-    el.className = 'deco-item';
-    el.textContent = item.s;
-    el.style.cssText = 'left:' + item.l + ';top:' + item.t + ';animation-delay:' + item.d;
-    document.body.appendChild(el);
+
+  batConfigs.forEach(function(cfg) {
+    var bat = document.createElement('div');
+    bat.style.cssText = 'position:fixed;top:' + cfg.top + ';pointer-events:none;z-index:99;' +
+      'animation:batVlucht ' + cfg.duur + 's linear ' + cfg.delay + ' infinite;';
+    bat.innerHTML = '<div style="animation:batFladder 0.35s ease-in-out infinite alternate;transform-origin:center;transform:scale(' + cfg.schaal + ');">' + batSVG + '</div>';
+    document.body.appendChild(bat);
   });
 }
 
