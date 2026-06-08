@@ -320,7 +320,7 @@
   </div>
 </div>
   
-<p class="version">v1.11 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.12 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -345,7 +345,7 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
       body: JSON.stringify({
         actie: 'bevestig_bestelling',
         naam: bestelling.naam, email: bestelling.email,
-        gerecht: bestelling.gerecht, prijs: bestelling.prijs,
+        items: bestelling.items,
         paymentId: returnedPaymentIntent
       })
     })
@@ -733,7 +733,7 @@ function renderKokData(bestellingen) {
   }
   var groepen = {};
   bestellingen.forEach(function(b) {
-    var sleutel = b.gerecht + (b.brood && b.brood !== '-' ? ' (' + b.brood + ')' : '');
+    var sleutel = (b.gerecht || '(onbekend)') + (b.brood && b.brood !== '-' ? ' (' + b.brood + ')' : '');
     if (!groepen[sleutel]) groepen[sleutel] = [];
     groepen[sleutel].push(b.naam);
   });
