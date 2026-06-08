@@ -256,9 +256,10 @@
     <div class="divider"></div>
     <p class="section-label">Kies je maaltijd</p>
     <div class="menu-grid" id="menuGrid">
-    <div class="cart-samenvatting" id="cartSamenvatting"></div>
+    
       <div class="menu-loading">Menu laden...</div>
     </div>
+    <div class="cart-samenvatting" id="cartSamenvatting"></div>
     <div class="divider"></div>
     <div class="total-row">
       <span class="total-label">Totaal te betalen</span>
@@ -319,7 +320,7 @@
   </div>
 </div>
   
-<p class="version">v1.10 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.11 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -860,7 +861,7 @@ document.getElementById('email').addEventListener('input', updateBtn);
 
 // ── OPNIEUW BESTELLEN ─────────────────────────────────
 document.getElementById('btnOpnieuw').addEventListener('click', function() {
-  geselecteerd = null; betalingKlaar = false; paymentElement = null;
+  betalingKlaar = false; paymentElement = null;
   clientSecret = null; elementsInstance = null;
   document.getElementById('successScreen').classList.remove('show');
   document.getElementById('formBody').classList.remove('hidden');
@@ -887,13 +888,18 @@ function toonFout(msg) {
   el.style.display = msg ? 'block' : 'none';
 }
 
-function toonSuccesScherm(naam, gerecht, totalCent) {
+function toonSuccesScherm(naam, items, totalCent) {
   document.getElementById('formBody').classList.add('hidden');
   document.getElementById('successScreen').classList.add('show');
-  document.getElementById('successDetail').innerHTML =
-    '<div class="row"><span>Naam</span><span>'    + naam    + '</span></div>' +
-    '<div class="row"><span>Gerecht</span><span>' + gerecht + '</span></div>' +
-    '<div class="row"><span>Betaald</span><span>€ ' + (totalCent / 100).toFixed(2) + '</span></div>';
+  var html = '<div class="row"><span>Naam</span><span>' + naam + '</span></div>';
+  if (Array.isArray(items)) {
+    items.forEach(function(item) {
+      var label = item.naam + (item.brood ? ' (' + item.brood + ')' : '') + (item.aantal > 1 ? ' ×' + item.aantal : '');
+      html += '<div class="row"><span>' + label + '</span><span>€ ' + (item.prijs * item.aantal).toFixed(2) + '</span></div>';
+    });
+  }
+  html += '<div class="row" style="border-top:1px solid rgba(0,0,0,0.1);margin-top:6px;padding-top:6px;font-weight:600;"><span>Totaal betaald</span><span>€ ' + (totalCent/100).toFixed(2) + '</span></div>';
+  document.getElementById('successDetail').innerHTML = html;
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
@@ -929,8 +935,8 @@ var total = Math.round((som + ADMIN_KOST) * 100);
 })
       })
       .then(function(r) { return r.json(); })
-      .then(function(d) { toonSuccesScherm(naam, item.naam, total); })
-      .catch(function() { toonSuccesScherm(naam, item.naam, total); });
+      .then(function(d) { toonSuccesScherm(naam, maakItemsArray(), total); })
+      .catch(function() { toonSuccesScherm(naam, maakItemsArray(), total); });
     });
     return;
   }
@@ -938,9 +944,8 @@ var total = Math.round((som + ADMIN_KOST) * 100);
   btn.classList.add('loading'); btn.disabled = true; toonFout('');
 
   sessionStorage.setItem('refter_bestelling', JSON.stringify({
-    naam: naam, email: email, gerecht: item.naam, prijs: item.prijs, total: total,
-    brood: getBroodkeuze
-  }));
+    naam: naam, email: email, items: maakItemsArray(), total: total
+}));
 
   fetch(WEBHOOK_URL, {
     method: 'POST',
