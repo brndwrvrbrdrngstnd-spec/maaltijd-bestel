@@ -197,6 +197,25 @@
 .kok-laden { text-align: center; padding: 2rem; color: var(--ink-muted); font-size: 0.875rem; }
 .btn-kok-refresh { display: flex; align-items: center; gap: 6px; margin: 0 auto 1.25rem; padding: 7px 16px; border: 1px solid var(--border); border-radius: 8px; background: transparent; font-family: 'DM Sans', sans-serif; font-size: 0.8rem; color: var(--ink-muted); cursor: pointer; }
 .btn-kok-refresh:hover { border-color: var(--accent); color: var(--accent); }
+
+.cart-samenvatting { margin-bottom: 0.5rem; display: none; }
+.cart-samenvatting.zichtbaar { display: block; }
+.cart-item-rij { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 0.5px solid var(--border); flex-wrap: wrap; }
+.cart-item-rij:last-child { border-bottom: none; }
+.cart-item-naam { flex: 1; font-size: 0.875rem; font-weight: 500; min-width: 100px; }
+.cart-item-brood { display: flex; gap: 4px; }
+.brood-knop { padding: 3px 8px; font-size: 0.75rem; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: var(--bg); transition: all 0.15s; font-family: inherit; }
+.brood-knop:hover { border-color: var(--accent); }
+.brood-knop.actief { background: var(--accent); color: #fff; border-color: var(--accent); }
+.brood-knop.nodig { border-color: var(--warn); color: var(--warn); animation: pulseWarn 1.5s ease-in-out infinite; }
+@keyframes pulseWarn { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+.cart-item-aantal { display: flex; align-items: center; gap: 6px; }
+.btn-aantal { width: 26px; height: 26px; border-radius: 50%; border: 1px solid var(--border); background: var(--bg); cursor: pointer; font-size: 15px; display: flex; align-items: center; justify-content: center; transition: all 0.15s; font-family: inherit; }
+.btn-aantal:hover { background: var(--accent-lt); border-color: var(--accent); }
+.cart-item-prijs { font-size: 0.875rem; color: var(--ink-muted); min-width: 52px; text-align: right; }
+.cart-badge { position: absolute; top: 7px; right: 7px; width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; font-weight: 600; display: none; align-items: center; justify-content: center; }
+.menu-item.in-cart .cart-badge { display: flex; }
+.menu-item.in-cart { border-color: var(--accent); background: var(--accent-lt); }
   </style>
 </head>
 <body>
@@ -237,6 +256,7 @@
     <div class="divider"></div>
     <p class="section-label">Kies je maaltijd</p>
     <div class="menu-grid" id="menuGrid">
+    <div class="cart-samenvatting" id="cartSamenvatting"></div>
       <div class="menu-loading">Menu laden...</div>
     </div>
     <div class="divider"></div>
@@ -299,7 +319,7 @@
   </div>
 </div>
   
-<p class="version">v1.04 - Louis Biebuyck &copy</p>
+<p class="version">v1.10 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -628,7 +648,7 @@ function toonDecoraties() {
 // ── STRIPE & STATE ────────────────────────────────────
 var stripe           = Stripe(STRIPE_KEY);
 var MENU             = [];
-var geselecteerd     = null;
+var cart             = [];
 var paymentElement   = null;
 var clientSecret     = null;
 var betalingKlaar    = false;
@@ -743,94 +763,98 @@ function laadMenu() {
 }
 
 function renderMenu() {
-  var grid = document.getElementById('menuGrid');
-  grid.innerHTML = '';
+  var grid = document.getElementById('menuGrid'); grid.innerHTML = '';
   MENU.forEach(function(item, i) {
-    var el = document.createElement('div');
-    el.className = 'menu-item';
-    el.innerHTML =
-      '<div class="item-name">'  + item.naam + '</div>' +
+    var el = document.createElement('div'); el.className = 'menu-item'; el.id = 'mi-' + i;
+    el.innerHTML = '<div class="item-name">' + item.naam + '</div>' +
       '<div class="item-price">€ ' + (item.prijs + ADMIN_KOST).toFixed(2) + '</div>' +
-      '<div class="check"></div>';
-    el.addEventListener('click', function() { selectItem(i, el); });
+      '<div class="cart-badge" id="badge-' + i + '">0</div>';
+    el.addEventListener('click', function() { klikItem(i); });
     grid.appendChild(el);
   });
 }
 
-function selectItem(i, el) {
-  document.querySelectorAll('.menu-item').forEach(function(e) { e.classList.remove('selected'); });
-  el.classList.add('selected');
-  geselecteerd = i;
-  updateTotaal();
-  toonBroodkeuze();
-  updateBtn();
-}
-
-function toonBroodkeuze() {
-  var bestaand = document.getElementById('broodkeuzeVeld');
-  if (bestaand) bestaand.remove();
-  if (geselecteerd === null) return;
-
-  var item = MENU[geselecteerd];
-  if (!item.broodkeuze) return;
-
-  var veld = document.createElement('div');
-  veld.id = 'broodkeuzeVeld';
-  veld.style.cssText = 'margin-bottom:1.25rem;';
-  veld.innerHTML =
-    '<p class="section-label" style="margin-bottom:0.75rem;">Broodkeuze</p>' +
-    '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">' +
-      '<div class="brood-optie" data-keuze="wit" onclick="kiesBrood(this)">' +
-        '<div style="font-size:1.3rem;margin-bottom:4px;">🍞</div>' +
-        '<div style="font-size:0.875rem;font-weight:500;">Wit</div>' +
-      '</div>' +
-      '<div class="brood-optie" data-keuze="bruin" onclick="kiesBrood(this)">' +
-        '<div style="font-size:1.3rem;margin-bottom:4px;">🫓</div>' +
-        '<div style="font-size:0.875rem;font-weight:500;">Bruin</div>' +
-      '</div>' +
-    '</div>';
-
-  // Stijl voor brood opties
-  var style = document.createElement('style');
-  style.textContent =
-    '.brood-optie{border:1.5px solid var(--border);border-radius:10px;padding:0.8rem;' +
-    'cursor:pointer;text-align:center;transition:border-color 0.15s,background 0.15s;}' +
-    '.brood-optie:hover{border-color:var(--accent);background:#f9fdf9;}' +
-    '.brood-optie.selected{border-color:var(--accent);background:var(--accent-lt);}';
-  if (!document.getElementById('broodStijl')) {
-    style.id = 'broodStijl';
-    document.head.appendChild(style);
+function klikItem(idx) {
+  var gevonden = null;
+  for (var i = 0; i < cart.length; i++) {
+    if (cart[i].menuIndex === idx) { gevonden = cart[i]; break; }
   }
-
-  // Voeg in na het menu grid
-  var menuGrid = document.getElementById('menuGrid');
-  menuGrid.parentNode.insertBefore(veld, menuGrid.nextSibling);
-  updateBtn();
+  if (gevonden) { gevonden.aantal++; }
+  else { cart.push({ menuIndex: idx, brood: null, aantal: 1 }); }
+  updateCartUI();
 }
 
-function kiesBrood(el) {
-  document.querySelectorAll('.brood-optie').forEach(function(e) { e.classList.remove('selected'); });
-  el.classList.add('selected');
-  updateBtn();
+function verminder(menuIndex, cartIdx) {
+  cart[cartIdx].aantal--;
+  if (cart[cartIdx].aantal <= 0) cart.splice(cartIdx, 1);
+  updateCartUI();
 }
 
-function getBroodkeuze() {
-  var geselecteerdeBrood = document.querySelector('.brood-optie.selected');
-  return geselecteerdeBrood ? geselecteerdeBrood.dataset.keuze : null;
+function verhoog(cartIdx) {
+  cart[cartIdx].aantal++;
+  updateCartUI();
 }
 
+function zetBrood(cartIdx, brood) {
+  cart[cartIdx].brood = brood;
+  updateCartUI();
+}
+
+function maakItemsArray() {
+  return cart.map(function(e) {
+    return { naam: MENU[e.menuIndex].naam, prijs: MENU[e.menuIndex].prijs, brood: e.brood, aantal: e.aantal };
+  });
+}
+
+function updateCartUI() {
+  MENU.forEach(function(item, i) {
+    var totaal = 0;
+    cart.forEach(function(e) { if (e.menuIndex === i) totaal += e.aantal; });
+    var badge = document.getElementById('badge-' + i);
+    var mi = document.getElementById('mi-' + i);
+    if (badge) badge.textContent = totaal;
+    if (mi) mi.classList.toggle('in-cart', totaal > 0);
+  });
+
+  var div = document.getElementById('cartSamenvatting');
+  if (cart.length === 0) { div.classList.remove('zichtbaar'); div.innerHTML = ''; updateTotaal(); updateBtn(); return; }
+
+  div.classList.add('zichtbaar');
+  var html = '<p class="section-label" style="margin-bottom:0.5rem;">Jouw bestelling</p>';
+  cart.forEach(function(entry, idx) {
+    var item = MENU[entry.menuIndex];
+    html += '<div class="cart-item-rij"><div class="cart-item-naam">' + item.naam + '</div>';
+    if (item.broodkeuze) {
+      var wit   = entry.brood === 'wit'   ? ' actief' : (entry.brood === null ? ' nodig' : '');
+      var bruin = entry.brood === 'bruin' ? ' actief' : (entry.brood === null ? ' nodig' : '');
+      html += '<div class="cart-item-brood">' +
+        '<button class="brood-knop' + wit   + '" onclick="zetBrood(' + idx + ',\'wit\')">🍞 Wit</button>' +
+        '<button class="brood-knop' + bruin + '" onclick="zetBrood(' + idx + ',\'bruin\')">🫓 Bruin</button>' +
+        '</div>';
+    }
+    html += '<div class="cart-item-aantal">' +
+      '<button class="btn-aantal" onclick="verminder(' + entry.menuIndex + ',' + idx + ')">−</button>' +
+      '<span>' + entry.aantal + '</span>' +
+      '<button class="btn-aantal" onclick="verhoog(' + idx + ')">+</button>' +
+      '</div><div class="cart-item-prijs">€ ' + (item.prijs * entry.aantal).toFixed(2) + '</div></div>';
+  });
+  div.innerHTML = html;
+  updateTotaal(); updateBtn();
+}
+  
 function updateTotaal() {
-  var totaalEl = document.getElementById('totalAmount');
-  if (geselecteerd === null) { totaalEl.textContent = '€ —'; return; }
-  totaalEl.textContent = '€ ' + (MENU[geselecteerd].prijs + ADMIN_KOST).toFixed(2);
+  var el = document.getElementById('totalAmount');
+  if (cart.length === 0) { el.textContent = '€ —'; return; }
+  var som = cart.reduce(function(a, e) { return a + MENU[e.menuIndex].prijs * e.aantal; }, 0);
+  el.textContent = '€ ' + (som + ADMIN_KOST).toFixed(2);
 }
 
 // ── VALIDATIE ─────────────────────────────────────────
 function updateBtn() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
-  var broodOk = geselecteerd === null || !MENU[geselecteerd].broodkeuze || getBroodkeuze() !== null;
-  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && geselecteerd !== null && broodOk);
+  var broodOk = cart.every(function(e) { return !MENU[e.menuIndex].broodkeuze || e.brood !== null; });
+  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && cart.length > 0 && broodOk);
 }
 document.getElementById('email').addEventListener('input', updateBtn);
 
@@ -844,7 +868,13 @@ document.getElementById('btnOpnieuw').addEventListener('click', function() {
   document.getElementById('totalAmount').textContent = '€ —';
   document.getElementById('btnPay').querySelector('.btn-text').textContent = 'Betalen & Bestellen';
   document.getElementById('btnPay').disabled = true;
-  document.querySelectorAll('.menu-item').forEach(function(e) { e.classList.remove('selected'); });
+  cart = [];
+document.getElementById('cartSamenvatting').classList.remove('zichtbaar');
+document.getElementById('cartSamenvatting').innerHTML = '';
+MENU.forEach(function(item, i) {
+  var b = document.getElementById('badge-' + i); var m = document.getElementById('mi-' + i);
+  if (b) b.textContent = '0'; if (m) m.classList.remove('in-cart');
+});
   toonFout('');
   window.history.replaceState({}, document.title, window.location.pathname);
   window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -871,8 +901,8 @@ function toonSuccesScherm(naam, gerecht, totalCent) {
 document.getElementById('btnPay').addEventListener('click', function() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
-  var item  = MENU[geselecteerd];
-  var total = Math.round((item.prijs + ADMIN_KOST) * 100);
+  var som   = cart.reduce(function(a, e) { return a + MENU[e.menuIndex].prijs * e.aantal; }, 0);
+var total = Math.round((som + ADMIN_KOST) * 100);
   var btn   = document.getElementById('btnPay');
 
   if (betalingKlaar) {
@@ -894,10 +924,9 @@ document.getElementById('btnPay').addEventListener('click', function() {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: JSON.stringify({
-          actie: 'bevestig_bestelling', naam: naam, email: email,
-          gerecht: item.naam, prijs: item.prijs, paymentId: result.paymentIntent.id,
-          brood: getBroodkeuze
-        })
+  actie: 'bevestig_bestelling', naam: naam, email: email,
+  items: maakItemsArray(), paymentId: result.paymentIntent.id
+})
       })
       .then(function(r) { return r.json(); })
       .then(function(d) { toonSuccesScherm(naam, item.naam, total); })
@@ -916,11 +945,9 @@ document.getElementById('btnPay').addEventListener('click', function() {
   fetch(WEBHOOK_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
-    body: JSON.stringify({
-      actie: 'create_payment_intent', naam: naam, email: email,
-      gerecht: item.naam, prijs: item.prijs, total: total,
-      brood: getBroodkeuze
-    })
+   body: JSON.stringify({
+  actie: 'create_payment_intent', naam: naam, email: email, total: total
+})
   })
   .then(function(resp) { return resp.json(); })
   .then(function(data) {
