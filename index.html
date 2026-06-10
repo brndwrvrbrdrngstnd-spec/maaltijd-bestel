@@ -320,7 +320,7 @@
   </div>
 </div>
   
-<p class="version">v1.12 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.13 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -768,7 +768,7 @@ function renderMenu() {
   MENU.forEach(function(item, i) {
     var el = document.createElement('div'); el.className = 'menu-item'; el.id = 'mi-' + i;
     el.innerHTML = '<div class="item-name">' + item.naam + '</div>' +
-      '<div class="item-price">€ ' + (item.prijs + ADMIN_KOST).toFixed(2) + '</div>' +
+      '<div class="item-price">€ ' + item.prijs.toFixed(2) + '</div>' +
       '<div class="cart-badge" id="badge-' + i + '">0</div>';
     el.addEventListener('click', function() { klikItem(i); });
     grid.appendChild(el);
@@ -839,6 +839,10 @@ function updateCartUI() {
       '<button class="btn-aantal" onclick="verhoog(' + idx + ')">+</button>' +
       '</div><div class="cart-item-prijs">€ ' + (item.prijs * entry.aantal).toFixed(2) + '</div></div>';
   });
+  html += '<div class="cart-item-rij" style="opacity:0.6;">' +
+    '<div class="cart-item-naam">Transactiekosten</div>' +
+    '<div class="cart-item-prijs">€ ' + ADMIN_KOST.toFixed(2) + '</div>' +
+    '</div>';
   div.innerHTML = html;
   updateTotaal(); updateBtn();
 }
