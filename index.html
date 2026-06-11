@@ -165,6 +165,12 @@
     @keyframes spin { to { transform: rotate(360deg); } }
     @keyframes spinDangle { 0%,100% { transform: translateX(0); } 50% { transform: translateX(14px); } }
 @keyframes batVlucht  { 0% { left: -80px; } 100% { left: 110vw; } }
+    @keyframes confettival {
+  0%   { transform: translateY(0) translateX(0) rotate(0deg); opacity:0; }
+  5%   { opacity:1; }
+  95%  { opacity:0.5; }
+  100% { transform: translateY(105vh) translateX(var(--drift)) rotate(var(--rot)); opacity:0; }
+}
 @keyframes batFladder { from { transform: scaleY(1); } to { transform: scaleY(0.45); } }
     @keyframes decoFloat { 0%,100% { transform: translateY(0) rotate(-5deg); } 50% { transform: translateY(-10px) rotate(5deg); } }
     .kok-knop-wrap { margin-top: 2rem; width: 100%; max-width: 480px; text-align: center; }
@@ -320,7 +326,7 @@
   </div>
 </div>
   
-<p class="version">v1.15 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.16 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -363,7 +369,8 @@ function getSezoen() {
   var preview = new URLSearchParams(window.location.search).get('seizoen');
   if (preview) return preview;
   var nu = new Date(); var maand = nu.getMonth() + 1; var dag = nu.getDate();
-  if (maand === 10) return 'halloween';
+  if ((maand === 12 && dag === 31) || (maand === 1 && dag <=2)) return 'nieuwjaar';
+  if (maand === 10 && dag === 31) return 'halloween';
   if (maand === 12 && dag <= 26) return 'kerst';
   if ((maand === 3 && dag >= 15) || (maand === 4 && dag <= 30)) return 'pasen';
   return null;
@@ -561,6 +568,99 @@ function maakKerstboom() {
   requestAnimationFrame(beweeg);
 }
 
+
+// NIEUWJAAR DECORATIES
+
+  function maakNieuwjaarDecoraties() {
+  var kleuren = ['#ff6b6b','#ffd166','#06d6a0','#118ab2','#9b5de5','#fb8500','#fff','#ff9ef5'];
+
+  // ── CONFETTI (oneindige loop zoals sneeuw) ──────────
+  var vormen = ['●','■','▲','★','♦'];
+  for (var i = 0; i < 60; i++) {
+    (function() {
+      var el = document.createElement('div');
+      el.style.cssText = 'position:fixed;top:-1.5em;pointer-events:none;z-index:99;' +
+        'user-select:none;animation:confettival linear infinite;';
+      el.textContent = vormen[Math.floor(Math.random() * vormen.length)];
+      el.style.left        = (Math.random() * 100) + 'vw';
+      el.style.fontSize    = (0.6 + Math.random() * 0.9) + 'em';
+      el.style.color       = kleuren[Math.floor(Math.random() * kleuren.length)];
+      el.style.opacity     = 0.35 + Math.random() * 0.35;
+      el.style.animationDuration  = (6 + Math.random() * 10) + 's';
+      el.style.animationDelay     = '-' + (Math.random() * 12) + 's';
+      el.style.setProperty('--drift', ((Math.random() - 0.5) * 140) + 'px');
+      el.style.setProperty('--rot',   (Math.random() * 720 - 360) + 'deg');
+      document.body.appendChild(el);
+    })();
+  }
+
+  // ── VUURWERK (schoten bij opstarten) ────────────────
+  var canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;inset:0;pointer-events:none;z-index:98;';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  var ctx = canvas.getContext('2d');
+
+  var deeltjes = [];
+
+  function maakExplosie(x, y) {
+    var kleur = kleuren[Math.floor(Math.random() * kleuren.length)];
+    var aantal = 55 + Math.floor(Math.random() * 30);
+    for (var i = 0; i < aantal; i++) {
+      var hoek    = (Math.PI * 2 / aantal) * i;
+      var snelheid = 2.5 + Math.random() * 3.5;
+      deeltjes.push({
+        x: x, y: y,
+        vx: Math.cos(hoek) * snelheid,
+        vy: Math.sin(hoek) * snelheid,
+        alpha: 1,
+        kleur: kleur,
+        straal: 2.5 + Math.random() * 2
+      });
+    }
+  }
+
+  function teken() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    deeltjes.forEach(function(d) {
+      d.x     += d.vx;
+      d.y     += d.vy;
+      d.vy    += 0.055;
+      d.vx    *= 0.98;
+      d.alpha -= 0.013;
+      if (d.alpha <= 0) return;
+      ctx.globalAlpha = d.alpha * 0.75;
+      ctx.fillStyle   = d.kleur;
+      ctx.beginPath();
+      ctx.arc(d.x, d.y, d.straal, 0, Math.PI * 2);
+      ctx.fill();
+    });
+    deeltjes = deeltjes.filter(function(d) { return d.alpha > 0; });
+    requestAnimationFrame(teken);
+  }
+
+  // Plan 6 explosies gespreid over 4 seconden
+  var posities = [
+    { x: 0.2, y: 0.25 }, { x: 0.75, y: 0.2  },
+    { x: 0.5, y: 0.15 }, { x: 0.15, y: 0.45 },
+    { x: 0.8, y: 0.35 }, { x: 0.45, y: 0.3  },
+  ];
+  posities.forEach(function(pos, i) {
+    setTimeout(function() {
+      maakExplosie(canvas.width * pos.x, canvas.height * pos.y);
+    }, i * 650);
+  });
+
+  // Verwijder canvas na 6 seconden
+  setTimeout(function() {
+    canvas.style.transition = 'opacity 1s';
+    canvas.style.opacity    = '0';
+    setTimeout(function() { canvas.remove(); }, 1000);
+  }, 6000);
+
+  requestAnimationFrame(teken);
+}
 // ── HALLOWEEN DECORATIES ──────────────────────────────
 
   function maakHalloweenDecoraties() {
@@ -643,7 +743,8 @@ function toonDecoraties() {
     maakPaasDecoraties();
   } else if (seizoen === 'halloween') {
     maakHalloweenDecoraties();
-  }
+  } else if (seizoen === 'nieuwjaar') { 
+    maakNieuwjaarDecoraties(); }
 }
 
 // ── STRIPE & STATE ────────────────────────────────────
