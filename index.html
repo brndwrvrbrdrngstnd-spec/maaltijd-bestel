@@ -320,13 +320,13 @@
   </div>
 </div>
   
-<p class="version">v1.14 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.15 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
 var STRIPE_KEY   = 'pk_live_51TdGeEKkHhYoBtH5DUQv5XlEcD1V6O9RX8ggJQdWO6DXWAyhBkOGpUIdsjxIob82BIGNtjHlS7XFTaXlUUoIa0h000T06T5fR5';
 var WEBHOOK_URL  = 'https://script.google.com/macros/s/AKfycbzXlQlnoNJpR9u3YenDz9ljXNcZXniRLkXCltLO3Wx-j_QA0ndjwr_ywzqTfeAWOsM-IQ/exec';
-var ADMIN_KOST   = 0.30;
+var ADMIN_KOST   = 0.00;
 var EMAIL_DOMEIN = 'zone1.be';
 
 // ── REDIRECT AFHANDELING (Bancontact) ─────────────────
@@ -839,10 +839,7 @@ function updateCartUI() {
       '<button class="btn-aantal" onclick="verhoog(' + idx + ')">+</button>' +
       '</div><div class="cart-item-prijs">€ ' + (item.prijs * entry.aantal).toFixed(2) + '</div></div>';
   });
-  html += '<div class="cart-item-rij" style="opacity:0.6;">' +
-    '<div class="cart-item-naam">Transactiekosten</div>' +
-    '<div class="cart-item-prijs">€ ' + ADMIN_KOST.toFixed(2) + '</div>' +
-    '</div>';
+ 
   div.innerHTML = html;
   updateTotaal(); updateBtn();
 }
