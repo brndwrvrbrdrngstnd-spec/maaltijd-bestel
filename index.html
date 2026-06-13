@@ -326,7 +326,7 @@
   </div>
 </div>
   
-<p class="version">v1.16 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.17 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -1053,7 +1053,7 @@ var total = Math.round((som + ADMIN_KOST) * 100);
     method: 'POST',
     headers: { 'Content-Type': 'text/plain' },
    body: JSON.stringify({
-  actie: 'create_payment_intent', naam: naam, email: email, total: total
+  actie: 'create_payment_intent', naam: naam, email: email, total: total, items: maakItemsArray()
 })
   })
   .then(function(resp) { return resp.json(); })
