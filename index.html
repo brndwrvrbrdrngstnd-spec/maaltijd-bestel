@@ -326,7 +326,7 @@
   </div>
 </div>
   
-<p class="version">v1.17 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.18 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -358,7 +358,7 @@ if (returnedPaymentIntent && returnedStatus === 'succeeded') {
     .then(function(r) { return r.json(); })
     .then(function(d) {
       console.log('Sheet response na redirect:', JSON.stringify(d));
-      toonSuccesScherm(bestelling.naam, bestelling.gerecht, bestelling.total);
+      toonSuccesScherm(bestelling.naam, bestelling.items, bestelling.total);
     })
     .catch(function(err) { console.error('Fout na redirect:', err); });
   }
