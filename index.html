@@ -432,7 +432,7 @@
 
   </div>
 </div>
-<p class="version">v1.19 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.20 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -1021,29 +1021,33 @@ var spreuken = [
 ];
 
 (function() {
-  var idx = Math.floor(Math.random() * spreuken.length);
-  var el  = document.getElementById('spreuk');
-  var i   = 0;
+  var idx     = Math.floor(Math.random() * spreuken.length);
+  var bezig   = false;
+  var el      = document.getElementById('spreuk');
 
- function toonSpreuk() {
+  el.textContent = spreuken[idx];
+  el.style.opacity = '1';
+
+  setInterval(function() {
+    if (bezig) return;
+    bezig = true;
+
     el.style.transition = 'opacity 0.5s';
     el.style.opacity = '0';
+
     setTimeout(function() {
       var nieuw;
       do { nieuw = Math.floor(Math.random() * spreuken.length); } while (nieuw === idx);
       idx = nieuw;
       el.textContent = spreuken[idx];
       el.style.opacity = '1';
+      bezig = false;
     }, 500);
-  }
 
-  // Toon meteen de eerste
-  el.textContent = spreuken[idx];
-  el.style.opacity = '1';
-
-  // Wissel elke 4 seconden
-  setInterval(toonSpreuk, 10000);
+  }, 10000);
 })();
+
+De bezig variabele zorgt dat een nieuwe wissel pas start als de vorige volledig afgerond is.
   
 // ── MENU LADEN VANUIT SHEET ───────────────────────────
 function laadMenu() {
