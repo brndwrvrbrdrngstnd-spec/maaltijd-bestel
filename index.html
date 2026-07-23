@@ -1010,7 +1010,6 @@ function helpVorige() {
 var spreuken = [
   'As t nie brand, is t tijd voe te eten. 🔥',
   'Wij goan door t vuur voe u — mor eerst: lunch.',
-  'Ons laatste maal? Nee hoor, gewoon de middag.',
   'Brandweer Oostende',
   'Da huis stond toch ol nie meer recht. Smakelijk!',
   'Interventie gedoan, handen gewassen, bordje vol. Da is t leven.',
@@ -1026,12 +1025,13 @@ var spreuken = [
   var el  = document.getElementById('spreuk');
   var i   = 0;
 
-  function toonSpreuk() {
-    // Fade out
+ function toonSpreuk() {
     el.style.transition = 'opacity 0.5s';
     el.style.opacity = '0';
     setTimeout(function() {
-      idx = (idx + 1) % spreuken.length;
+      var nieuw;
+      do { nieuw = Math.floor(Math.random() * spreuken.length); } while (nieuw === idx);
+      idx = nieuw;
       el.textContent = spreuken[idx];
       el.style.opacity = '1';
     }, 500);
@@ -1042,7 +1042,7 @@ var spreuken = [
   el.style.opacity = '1';
 
   // Wissel elke 4 seconden
-  setInterval(toonSpreuk, 4000);
+  setInterval(toonSpreuk, 10000);
 })();
   
 // ── MENU LADEN VANUIT SHEET ───────────────────────────
