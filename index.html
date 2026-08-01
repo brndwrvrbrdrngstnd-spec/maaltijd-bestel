@@ -866,7 +866,7 @@ var elementsInstance = null;
 document.getElementById('naam').addEventListener('input', function() {
   var naam  = this.value.trim();
   var delen = naam.split(' ');
-  if (delen.length >= 2 && delen[0].length > 0 && delen[1].length > 0) {
+  if (delen.length === 2 && delen[0].length > 0 && delen[1].length > 0) {
     var voornaam   = delen[0].toLowerCase();
     var achternaam = delen[delen.length - 1].toLowerCase();
     var emailVeld  = document.getElementById('email');
