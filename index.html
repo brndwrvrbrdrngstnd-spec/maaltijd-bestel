@@ -432,7 +432,7 @@
 
   </div>
 </div>
-<p class="version">v1.21 - Louis Biebuyck &copy 2026</p>
+<p class="version">v1.22 - Louis Biebuyck &copy 2026</p>
 
 <script>
 // ── CONFIGURATIE ──────────────────────────────────────
@@ -865,14 +865,20 @@ var elementsInstance = null;
 // ── EMAIL AUTO-INVULLEN ───────────────────────────────
 document.getElementById('naam').addEventListener('input', function() {
   var naam  = this.value.trim();
-  var delen = naam.split(' ');
-  if (delen.length === 2 && delen[0].length > 0 && delen[1].length > 0) {
+  var delen = naam.split(' ').filter(function(d) { return d.length > 0; });
+  var emailVeld = document.getElementById('email');
+
+  if (delen.length === 2) {
+    // Exact 2 woorden: automatisch invullen
     var voornaam   = delen[0].toLowerCase();
-    var achternaam = delen[delen.length - 1].toLowerCase();
-    var emailVeld  = document.getElementById('email');
-    var huidig     = emailVeld.value;
-    if (!huidig || huidig.includes('@' + EMAIL_DOMEIN)) {
+    var achternaam = delen[1].toLowerCase();
+    if (!emailVeld.value || emailVeld.value.includes('@' + EMAIL_DOMEIN)) {
       emailVeld.value = voornaam + '.' + achternaam + '@' + EMAIL_DOMEIN;
+    }
+  } else if (delen.length > 2) {
+    // Meer dan 2 woorden: automatisch ingevuld adres wissen
+    if (emailVeld.value.includes('@' + EMAIL_DOMEIN)) {
+      emailVeld.value = '';
     }
   }
   updateBtn();
