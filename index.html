@@ -26,6 +26,8 @@
     html { background: var(--bg); }
     body { font-family: 'DM Sans', sans-serif; color: var(--ink); min-height: 100vh; display: flex; flex-direction: column; align-items: center; padding: 2rem 1rem 4rem; overflow-x: hidden; }
 
+    .gesloten-banner { background: var(--warn-lt); border: 1px solid rgba(181,69,27,0.25); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.875rem; color: var(--warn); margin-bottom: 1.25rem; display: none; line-height: 1.5; }
+    .menu-grid.gesloten { opacity: 0.4; pointer-events: none; }
     /* ── LICHTSLINGER ── */
     .lichtslinger {
       position: fixed;
@@ -285,6 +287,10 @@
 
   <div class="form-body" id="formBody">
     <div class="error-banner" id="errorBanner"></div>
+    <div class="gesloten-banner" id="geslotenBanner">
+  Bestellen is nu gesloten. Je kan opnieuw bestellen vanaf <strong>07u00</strong>.<br>
+  Weekdagen tot 09u00, weekends tot 08u30.
+</div>
     <p class="section-label">Jouw gegevens</p>
     <div class="field">
       <label for="naam">Naam</label>
@@ -853,6 +859,31 @@ function toonDecoraties() {
     maakNieuwjaarDecoraties(); }
 }
 
+  // ── BESTELVENSTER ─────────────────────────────────────
+var OPEN_MIN         = 7 * 60;       // 07:00
+var SLUIT_WEEK_MIN   = 9 * 60;       // 09:00
+var SLUIT_WEEKEND_MIN = 8 * 60 + 30; // 08:30
+
+function isBestellenOpen() {
+  var p = {};
+  new Intl.DateTimeFormat('en-GB', {
+    timeZone: 'Europe/Brussels', weekday: 'short',
+    hour: '2-digit', minute: '2-digit', hourCycle: 'h23'
+  }).formatToParts(new Date()).forEach(function(x) { p[x.type] = x.value; });
+
+  var minuten = parseInt(p.hour, 10) * 60 + parseInt(p.minute, 10);
+  var weekend = (p.weekday === 'Sat' || p.weekday === 'Sun');
+  var sluit   = weekend ? SLUIT_WEEKEND_MIN : SLUIT_WEEK_MIN;
+  return minuten >= OPEN_MIN && minuten < sluit;
+}
+
+function controleerBestelvenster() {
+  var vergrendeld = !isBestellenOpen() && !betalingKlaar;
+  document.getElementById('geslotenBanner').style.display = vergrendeld ? 'block' : 'none';
+  document.getElementById('menuGrid').classList.toggle('gesloten', vergrendeld);
+  updateBtn();
+}
+  
 // ── STRIPE & STATE ────────────────────────────────────
 var stripe           = Stripe(STRIPE_KEY);
 var MENU             = [];
@@ -1082,6 +1113,7 @@ function renderMenu() {
 }
 
 function klikItem(idx) {
+  if (!isBestellenOpen()) { controleerBestelvenster(); return; }
   var gevonden = null;
   for (var i = 0; i < cart.length; i++) {
     if (cart[i].menuIndex === idx) { gevonden = cart[i]; break; }
@@ -1162,7 +1194,8 @@ function updateBtn() {
   var naam  = document.getElementById('naam').value.trim();
   var email = document.getElementById('email').value.trim();
   var broodOk = cart.every(function(e) { return !MENU[e.menuIndex].broodkeuze || e.brood !== null; });
-  document.getElementById('btnPay').disabled = !(naam.length > 1 && email.includes('@') && cart.length > 0 && broodOk);
+  var open = isBestellenOpen() || betalingKlaar;
+  document.getElementById('btnPay').disabled = !(open && naam.length > 1 && email.includes('@') && cart.length > 0 && broodOk);
 }
 document.getElementById('email').addEventListener('input', updateBtn);
 
@@ -1286,6 +1319,8 @@ var total = Math.round((som + ADMIN_KOST) * 100);
 // ── START ─────────────────────────────────────────────
 laadMenu();
 toonDecoraties();
+controleerBestelvenster();
+setInterval(controleerBestelvenster, 30000);
 </script>
 </body>
 </html>
